@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "lgnsynapse"
+		},
+		"SL3SQL_connectionString": {
+			"value": ""
+		},
+		"lgndatalake_accountKey": {
+			"value": ""
+		},
+		"lgnsynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"lnewportazuresql_connectionString": {
+			"value": ""
+		},
+		"SqlOnDemandDemo_sasUri": {
+			"value": ""
+		},
+		"lgndatalake_properties_typeProperties_url": {
+			"value": "https://lgndatalake.dfs.core.windows.net"
+		},
+		"lgnsynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://lgnsynapselake.dfs.core.windows.net"
+		}
+	}
+}
