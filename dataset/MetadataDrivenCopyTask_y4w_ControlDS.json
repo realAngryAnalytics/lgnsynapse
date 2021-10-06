@@ -1,0 +1,19 @@
+{
+	"name": "MetadataDrivenCopyTask_y4w_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lnewportazuresql",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_y4w_20211006"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MainControlTable_y4w"
+		}
+	}
+}
