@@ -1,0 +1,180 @@
+{
+	"name": "Tokens and String Splitting",
+	"properties": {
+		"nbformat": 0,
+		"nbformat_minor": 0,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"language_info": {
+				"name": "python"
+			}
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"from azure.storage.blob import BlockBlobService\n",
+					"\n",
+					"block_blob_service = BlockBlobService(\n",
+					"    account_name='asadatalake176496', account_key='1XM/nC/u7/JAC+FRHhFoyNeo1n3ipBY86quFoY9D3ITmPRoDFx8EMdjWwdCmN6Yg3RCsm7AFESDiaszF9VTxPw==') "
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"outputCollapsed": true
+				},
+				"source": [
+					"import numpy as np\n",
+					"\n",
+					"for i in np.arange(1, 32):\n",
+					"\n",
+					"    file_path = f'abfss://wwi-02@asadatalake176496.dfs.core.windows.net/sale-small/Year=2017/Quarter=Q2/Month=5/Day=201705{i:02}/sale-small-201705{i:02}-snappy.parquet'\n",
+					"    print(file_path)\n",
+					"\n",
+					"    data_path = spark.read.load(file_path, format='parquet')\n",
+					"    sale_df = data_path.toPandas()\n",
+					"    block_blob_service.create_blob_from_text('wwi-02', f'sale-poc-v2/sale-201705{i:02}.csv', sale_df.to_csv(quotechar='\\'', index=False, header=True, escapechar='\\\\', doublequote=False))"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"data_path = spark.read.load('abfss://wwi-02@asadatalake176496.dfs.core.windows.net/sale-small/Year=2017/Quarter=Q2/Month=5/Day=20170501/sale-small-20170501-snappy.parquet', format='parquet')\n",
+					"sale_df = data_path.toPandas()\n",
+					"\n",
+					"from decimal import *\n",
+					"\n",
+					"sale_df['TotalAmount'] = sale_df['TotalAmount'] * Decimal(1.1)\n",
+					"sale_df['ProfitAmount'] = sale_df['ProfitAmount'] * Decimal(1.1)\n",
+					"\n",
+					"block_blob_service.create_blob_from_text('wwi-02', 'sale-poc-v2/sale-20170501.csv', sale_df.to_csv(quotechar='\\'', index=False, header=True, escapechar='\\\\', doublequote=False))"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"data_path = spark.read.load('abfss://wwi-02@asadatalake176496.dfs.core.windows.net/sale-small/Year=2017/Quarter=Q2/Month=5/Day=20170502/sale-small-20170502-snappy.parquet', format='parquet')\n",
+					"sale_df = data_path.toPandas()\n",
+					"\n",
+					"from decimal import *\n",
+					"\n",
+					"sale_df['TotalAmount'] = sale_df['TotalAmount'] * Decimal(1.1)\n",
+					"sale_df['ProfitAmount'] = sale_df['ProfitAmount'] * Decimal(1.1)\n",
+					"\n",
+					"block_blob_service.create_blob_from_text('wwi-02', 'sale-poc-v2/sale-20170502.csv', sale_df.to_csv(quotechar='\\'', index=False, header=False, escapechar='\\\\', doublequote=False, line_terminator=','))"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from azure.storage.blob import BlockBlobService\n",
+					"\n",
+					"block_blob_service = BlockBlobService(\n",
+					"    account_name='asadatalake176496', account_key='1XM/nC/u7/JAC+FRHhFoyNeo1n3ipBY86quFoY9D3ITmPRoDFx8EMdjWwdCmN6Yg3RCsm7AFESDiaszF9VTxPw==') \n",
+					"\n",
+					"file_content = block_blob_service.get_blob_to_text('wwi-02', 'sale-poc-v2/sale-20170502.csv')\n",
+					"\n",
+					"tokens = file_content.content.split(',')\n",
+					"\n",
+					"print(f'Found {len(tokens)} tokens in content.')"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"[tokens[i] for i in np.arange(0, 10)] "
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import numpy as np\n",
+					"import pandas as pd\n",
+					"\n",
+					"row_list = []\n",
+					"\n",
+					"max_index = 11\n",
+					"while max_index <= len(tokens):\n",
+					"\n",
+					"    row = [tokens[i] for i in np.arange(max_index - 11, max_index)] \n",
+					"    row_list.append(row)\n",
+					"\n",
+					"    max_index += 11\n",
+					"\n",
+					""
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"outputCollapsed": true
+				},
+				"source": [
+					"df = pd.DataFrame(row_list, columns = ['TransactionId', 'CustomerId', 'ProductId', 'Quantity', 'Price', 'TotalAmount', 'TransactionDateId', 'ProfitAmount', 'Hour', 'Minute', 'StoreId'])\n",
+					"df.head(100)"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import numpy as np\n",
+					"import pandas as pd\n",
+					"\n",
+					"data_path = spark.read.load('abfss://wwi-02@asadatalake176496.dfs.core.windows.net/data-generators/generator-customer.csv', format='CSV', header=True, quote='\\'')\n",
+					"df = data_path.toPandas()\n",
+					"df.columns"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df.Address.str.split(',')"
+				],
+				"attachments": null,
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"attachments": null,
+				"execution_count": null
+			}
+		]
+	}
+}
