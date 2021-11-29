@@ -3,7 +3,10 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "lgnsynapse-WorkspaceDefaultSqlServer",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBName": "SampleSQL"
+			}
 		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
@@ -66,7 +69,7 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "fxcc_poc",
+			"schema": "ordemo",
 			"table": "control_table"
 		}
 	}
