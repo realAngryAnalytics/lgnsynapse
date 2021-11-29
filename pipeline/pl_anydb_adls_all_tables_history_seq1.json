@@ -18,7 +18,7 @@
 					"source": {
 						"type": "SqlDWSource",
 						"sqlReaderQuery": {
-							"value": "@concat('select * from ',pipeline().parameters.ctbl_schema,'.',pipeline().parameters.ctbl_name, ' where trigger_segment=', pipeline().parameters.trigger_segment,' start_run=''Y'' and load_type =''history'' and flow_sequence=1 and run_status =''N''')",
+							"value": "@concat('select * from ',pipeline().parameters.ctbl_schema,'.',pipeline().parameters.ctbl_name, ' where trigger_segment=', pipeline().parameters.trigger_segment,' and start_run=''Y'' and load_type =''history'' and flow_sequence=1 and run_status =''N''')",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
