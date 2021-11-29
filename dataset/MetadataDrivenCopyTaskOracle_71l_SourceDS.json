@@ -1,0 +1,33 @@
+{
+	"name": "MetadataDrivenCopyTaskOracle_71l_SourceDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "oracle",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_schema": {
+				"type": "String"
+			},
+			"cw_table": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTaskOracle_71l_20211129"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().cw_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().cw_table",
+				"type": "Expression"
+			}
+		}
+	}
+}
