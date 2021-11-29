@@ -24,10 +24,6 @@
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
-					"dataset": {
-						"referenceName": "ds_synapse",
-						"type": "DatasetReference"
-					},
 					"firstRowOnly": false
 				}
 			},
@@ -68,10 +64,6 @@
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
-											"pipeline": {
-												"referenceName": "pl_partition_anydb_adls",
-												"type": "PipelineReference"
-											},
 											"waitOnCompletion": true,
 											"parameters": {
 												"schemaname": {
@@ -228,48 +220,8 @@
 													"type": "ParquetWriteSettings"
 												}
 											},
-											"enableStaging": false,
-											"translator": {
-												"type": "TabularTranslator",
-												"typeConversion": true,
-												"typeConversionSettings": {
-													"allowDataTruncation": true,
-													"treatBooleanAsNumber": false
-												}
-											}
-										},
-										"inputs": [
-											{
-												"referenceName": "ds_oracle_table",
-												"type": "DatasetReference",
-												"parameters": {
-													"ds_schema": {
-														"value": "@toUpper(item().source_path)",
-														"type": "Expression"
-													},
-													"ds_table": {
-														"value": "@toUpper(item().source_table)",
-														"type": "Expression"
-													}
-												}
-											}
-										],
-										"outputs": [
-											{
-												"referenceName": "ds_adls_parquet1",
-												"type": "DatasetReference",
-												"parameters": {
-													"ds_folder": {
-														"value": "@item().target_path",
-														"type": "Expression"
-													},
-													"ds_filename": {
-														"value": "@concat(item().dest_table,'.parquet')",
-														"type": "Expression"
-													}
-												}
-											}
-										]
+											"enableStaging": false
+										}
 									},
 									{
 										"name": "Stored procedure update run status true",
