@@ -1,0 +1,16 @@
+{
+	"name": "oracle",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=192.168.1.43;port=1521;servicename=ORCLPDB1.localdomain;user id=hr",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJkZjUzNDdjYy1kYzJiLTQyODMtOTc0NS05YWQ5YTJkY2NkMGEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SL3",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
