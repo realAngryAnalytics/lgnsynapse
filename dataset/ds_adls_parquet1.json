@@ -1,0 +1,35 @@
+{
+	"name": "ds_adls_parquet1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lgnsynapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_folder": {
+				"type": "string"
+			},
+			"ds_filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ds_filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().ds_folder",
+					"type": "Expression"
+				},
+				"fileSystem": "oracle-demo"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

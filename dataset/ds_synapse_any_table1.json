@@ -1,0 +1,30 @@
+{
+	"name": "ds_synapse_any_table1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lgnsynapse-WorkspaceDefaultSqlServer",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_schema": {
+				"type": "string"
+			},
+			"ds_tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ds_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().ds_tablename",
+				"type": "Expression"
+			}
+		}
+	}
+}
