@@ -1,0 +1,248 @@
+{
+	"name": "pl_adls_to_synapse_incremental_single_table",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": {
+							"value": "@concat('select * from ',pipeline().parameters.ctbl_schema,'.adls_log_hist where tablename = ''',pipeline().parameters.p_source_table, ''' and processed = ''N'' order by last_modified_date ')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_synapse1",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup1').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('prev_upsert'),'Y')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Data flow1",
+										"type": "ExecuteDataFlow",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "1.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataflow": {
+												"referenceName": "df_adls_synapse_current",
+												"type": "DataFlowReference",
+												"parameters": {
+													"cols": {
+														"value": "@pipeline().parameters.p_key_column",
+														"type": "Expression"
+													}
+												},
+												"datasetParameters": {
+													"source1": {
+														"ds_folder": {
+															"value": "@item().folder_path",
+															"type": "Expression"
+														},
+														"ds_filename": {
+															"value": "@item().filename",
+															"type": "Expression"
+														},
+														"ds_container": {
+															"value": "@item().container",
+															"type": "Expression"
+														}
+													},
+													"sink1": {
+														"ds_schema": {
+															"value": "@item().schema_name",
+															"type": "Expression"
+														},
+														"ds_table": {
+															"value": "@item().tablename",
+															"type": "Expression"
+														}
+													}
+												}
+											},
+											"staging": {
+												"linkedService": {
+													"referenceName": "lgnsynapse-WorkspaceDefaultStorage",
+													"type": "LinkedServiceReference"
+												},
+												"folderPath": {
+													"value": "@item().container",
+													"type": "Expression"
+												}
+											},
+											"compute": {
+												"coreCount": 8,
+												"computeType": "General"
+											},
+											"traceLevel": "Fine"
+										}
+									},
+									{
+										"name": "Stored procedure1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Data flow1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "@concat(pipeline().parameters.ctbl_schema,'.sp_update_adls_load_hist')",
+												"type": "Expression"
+											},
+											"storedProcedureParameters": {
+												"filename": {
+													"value": {
+														"value": "@item().filename",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"folderpath": {
+													"value": {
+														"value": "@item().folder_path",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"processed": {
+													"value": "Y",
+													"type": "String"
+												},
+												"processed_date": {
+													"value": {
+														"value": "@substring(utcnow(),0,19)",
+														"type": "Expression"
+													},
+													"type": "DateTime"
+												},
+												"schemaname": {
+													"value": {
+														"value": "@item().schema_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"tablename": {
+													"value": {
+														"value": "@item().tablename",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "lgnsynapse-WorkspaceDefaultSqlServer",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "Set variable1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Data flow1",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "prev_upsert",
+											"value": "N"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"p_source_table": {
+				"type": "string"
+			},
+			"p_key_column": {
+				"type": "array"
+			},
+			"ctbl_schema": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"prev_upsert": {
+				"type": "String",
+				"defaultValue": "Y"
+			}
+		},
+		"folder": {
+			"name": "Ingestion patterns/Incremental"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-10-04T22:26:14Z"
+	}
+}
