@@ -1,0 +1,171 @@
+{
+	"name": "pl_partition_anydb_adls",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": {
+							"value": "@pipeline().parameters.cntrl_table_qstring",
+							"type": "Expression"
+						},
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "ds_oracle_any_table",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_schema": "schemaname",
+							"ds_table": "tablename"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup1').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 6,
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "@concat('select * from ',pipeline().parameters.schemaname,'.',pipeline().parameters.tablename,' where ',replace(pipeline().parameters.watermark_where_cond,'part_value', item().his_grp_column))",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_oracle_any_table",
+									"type": "DatasetReference",
+									"parameters": {
+										"ds_schema": "schemaname",
+										"ds_table": "tablename"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_parquet_any_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"ds_folder": {
+											"value": "@pipeline().parameters.folder",
+											"type": "Expression"
+										},
+										"ds_filename": {
+											"value": "@concat(pipeline().parameters.filename,'_',item().his_grp_column,'.parquet')",
+											"type": "Expression"
+										},
+										"ds_container": {
+											"value": "@pipeline().parameters.container",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"schemaname": {
+				"type": "string"
+			},
+			"tablename": {
+				"type": "string"
+			},
+			"cntrl_table_his_grp_column": {
+				"type": "string",
+				"defaultValue": "CONCAT(EXTRACT(YEAR  FROM BLNG_DT), EXTRACT(MONTH FROM date))"
+			},
+			"cntrl_table_qstring": {
+				"type": "string",
+				"defaultValue": " select year(date) his_grp_column, COUNT(*) CNT from schema.tablename"
+			},
+			"folder": {
+				"type": "string",
+				"defaultValue": "tablename/raw/history"
+			},
+			"filename": {
+				"type": "string",
+				"defaultValue": "filename without extension"
+			},
+			"watermark_where_cond": {
+				"type": "string",
+				"defaultValue": "year(date) ='part_value'"
+			},
+			"container": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Ingestion patterns/History"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-27T18:34:15Z"
+	}
+}

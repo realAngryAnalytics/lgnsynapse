@@ -1,0 +1,33 @@
+{
+	"name": "ds_oracle_any_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "oracle",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_schema": {
+				"type": "string"
+			},
+			"ds_table": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "ingestion pattern datasets"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ds_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().ds_table",
+				"type": "Expression"
+			}
+		}
+	}
+}

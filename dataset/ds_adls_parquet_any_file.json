@@ -1,0 +1,44 @@
+{
+	"name": "ds_adls_parquet_any_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lgnsynapse-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_folder": {
+				"type": "string"
+			},
+			"ds_filename": {
+				"type": "string"
+			},
+			"ds_container": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "ingestion pattern datasets"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ds_filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().ds_folder",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().ds_container",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"name": "df_adls_synapse_history1",
+	"properties": {
+		"folder": {
+			"name": "Ingestion pattern dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_adls_parquet_any_file",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_synapse_anytable",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn1"
+				}
+			],
+			"script": "parameters{\n\tdf_schema as string,\n\tdf_table as string,\n\tds_folder as string,\n\tdf_watermark_col as string\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet',\n\twildcardPaths:[(concat($ds_folder,'/*.parquet'))]) ~> source1\nsource1 derive(last_update_tmstp = currentUTC()) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tsource_table as string,\n\t\tdest_table as string,\n\t\tsource_path as string,\n\t\ttarget_path as string,\n\t\tflow_sequence as string,\n\t\trun_status as string,\n\t\tqstring as string,\n\t\twatermark_col as string,\n\t\twatermark_val as string,\n\t\tkey_column as string,\n\t\tsource_name as string,\n\t\tload_type as string,\n\t\tstart_run as string,\n\t\tsource_id as string\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tallowCopyCommand: true,\n\tpreSQLs:[(\" TRUNCATE TABLE {$df_schema}.{$df_table}\")],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1"
+		}
+	}
+}
