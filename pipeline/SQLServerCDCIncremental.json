@@ -17,7 +17,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "DECLARE  @from_lsn binary(10), @to_lsn binary(10);  \nSET @from_lsn =sys.fn_cdc_get_min_lsn('SalesLT_Product');  \nSET @to_lsn = sys.fn_cdc_map_time_to_lsn('largest less than or equal',  GETDATE());\nSELECT count(1) changecount FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, 'all')",
+						"sqlReaderQuery": {
+							"value": "@concat('DECLARE @begin_time datetime, @end_time datetime, @from_lsn binary(10), @to_lsn binary(10); \nSET @begin_time = ''',pipeline().parameters.triggerStartTime,''';\nSET @end_time = ''',pipeline().parameters.triggerEndTime,''';\nSET @from_lsn = sys.fn_cdc_map_time_to_lsn(''smallest greater than or equal'', @begin_time);\nSET @to_lsn = sys.fn_cdc_map_time_to_lsn(''largest less than'', @end_time);\nSELECT count(1) changecount FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, ''all'')')",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -64,7 +67,10 @@
 							"typeProperties": {
 								"source": {
 									"type": "SqlServerSource",
-									"sqlReaderQuery": "DECLARE @from_lsn binary(10), @to_lsn binary(10); \nSET @from_lsn =sys.fn_cdc_get_min_lsn('SalesLT_Product'); \nSET @to_lsn = sys.fn_cdc_map_time_to_lsn('largest less than or equal', GETDATE());\nSELECT * FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, 'all')\n",
+									"sqlReaderQuery": {
+										"value": "@concat('DECLARE @begin_time datetime, @end_time datetime, @from_lsn binary(10), @to_lsn binary(10); \nSET @begin_time = ''',pipeline().parameters.triggerStartTime,''';\nSET @end_time = ''',pipeline().parameters.triggerEndTime,''';\nSET @from_lsn = sys.fn_cdc_map_time_to_lsn(''smallest greater than or equal'', @begin_time);\nSET @to_lsn = sys.fn_cdc_map_time_to_lsn(''largest less than'', @end_time);\nSELECT * FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, ''all'')')",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
@@ -105,7 +111,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"folderPath": "AdventureWorksLT2017/Incremental",
-										"filePath": "SalesLT.Product_incremental.csv"
+										"filePath": "SalesLT.Product_incremental.csv",
+										"triggerStart": {
+											"value": "@pipeline().parameters.triggerStartTime",
+											"type": "Expression"
+										}
 									}
 								}
 							]
@@ -114,6 +124,16 @@
 				}
 			}
 		],
+		"parameters": {
+			"triggerStartTime": {
+				"type": "string",
+				"defaultValue": "2021-11-30 20:20:00.000"
+			},
+			"triggerEndTime": {
+				"type": "string",
+				"defaultValue": "2021-11-30 20:59:00.000"
+			}
+		},
 		"annotations": []
 	}
 }
