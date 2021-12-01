@@ -17,6 +17,9 @@
 		"lnewportazuresql_connectionString": {
 			"value": ""
 		},
+		"oracle_connectionString": {
+			"value": ""
+		},
 		"SqlOnDemandDemo_sasUri": {
 			"value": ""
 		},
