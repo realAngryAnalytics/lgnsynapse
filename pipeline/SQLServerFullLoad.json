@@ -57,12 +57,21 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"folderPath": "AdventureWorksLT2017/Full",
-							"filePath": "SalesLT.Product.csv"
+							"filePath": "SalesLT.Product.csv",
+							"triggerStart": {
+								"value": "@pipeline().parameters.triggerStartTime",
+								"type": "Expression"
+							}
 						}
 					}
 				]
 			}
 		],
+		"parameters": {
+			"triggerStartTime": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
