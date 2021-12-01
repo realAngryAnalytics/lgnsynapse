@@ -19,6 +19,13 @@
 						"referenceName": "SQLFullLoadToSynapse",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "lgndatalake",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "raw"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
