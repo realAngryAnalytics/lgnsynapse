@@ -1,0 +1,68 @@
+{
+	"name": "ReadDeltafromSQLIngest",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "lgnsynspark",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "56g",
+			"driverCores": 8,
+			"executorMemory": "56g",
+			"executorCores": 8,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "13d61aed-0b6d-45c9-b7de-66752a41695e"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/65c04546-fce4-4b3c-be44-dac0e5324e24/resourceGroups/lgnsynapse/providers/Microsoft.Synapse/workspaces/lgnsynapse/bigDataPools/lgnsynspark",
+				"name": "lgnsynspark",
+				"type": "Spark",
+				"endpoint": "https://lgnsynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/lgnsynspark",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "2.4",
+				"nodeCount": 10,
+				"cores": 8,
+				"memory": 56,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"df = spark.read.format('delta').load('abfss://raw@lgndatalake.dfs.core.windows.net/bronze/AdventureWorksLT2017/SalesLT.Product')\r\n",
+					"display(df)"
+				],
+				"execution_count": 2
+			}
+		]
+	}
+}
