@@ -26,7 +26,7 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@concat('AdventureWorksLT2017/SalesLT.Product/incremental/',formatDateTime(dataset().triggerStart,'yyyy/MM/dd'))",
+					"value": "@concat('AdventureWorksLT2017/Incremental/SalesLT.Product/',formatDateTime(dataset().triggerStart,'yyyy/MM/dd'))",
 					"type": "Expression"
 				},
 				"fileSystem": "raw"
