@@ -1,0 +1,119 @@
+{
+	"name": "SQLServerCDCIncremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetChangeCount",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "DECLARE  @from_lsn binary(10), @to_lsn binary(10);  \nSET @from_lsn =sys.fn_cdc_get_min_lsn('SalesLT_Product');  \nSET @to_lsn = sys.fn_cdc_map_time_to_lsn('largest less than or equal',  GETDATE());\nSELECT count(1) changecount FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, 'all')",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerTable",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaName": "cdc",
+							"tableName": "SalesLT_Product_CT"
+						}
+					}
+				}
+			},
+			{
+				"name": "HasChangedRows",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "GetChangeCount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(int(activity('GetChangeCount').output.firstRow.changecount),0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy Incremental Data",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": "DECLARE @from_lsn binary(10), @to_lsn binary(10); \nSET @from_lsn =sys.fn_cdc_get_min_lsn('SalesLT_Product'); \nSET @to_lsn = sys.fn_cdc_map_time_to_lsn('largest less than or equal', GETDATE());\nSELECT * FROM cdc.fn_cdc_get_all_changes_SalesLT_Product(@from_lsn, @to_lsn, 'all')\n",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SqlServerTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"schemaName": "dbo",
+										"tableName": "dummy"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DelimitedText1",
+									"type": "DatasetReference",
+									"parameters": {
+										"folderPath": "AdventureWorksLT2017/Incremental",
+										"filePath": "SalesLT.Product_incremental.csv"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}
