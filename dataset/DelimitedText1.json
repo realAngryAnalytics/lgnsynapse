@@ -11,6 +11,9 @@
 			},
 			"filePath": {
 				"type": "string"
+			},
+			"triggerStart": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -19,11 +22,11 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@dataset().filePath",
+					"value": "@concat(formatDateTime(dataset().triggerStart,'yyyyMMddHHmmssfff'),'.csv')",
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@dataset().folderPath",
+					"value": "@concat('AdventureWorksLT2017/SalesLT.Product/incremental/',formatDateTime(dataset().triggerStart,'yyyy/MM/dd'))",
 					"type": "Expression"
 				},
 				"fileSystem": "raw"
