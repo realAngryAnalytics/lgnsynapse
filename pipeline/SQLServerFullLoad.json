@@ -56,7 +56,7 @@
 						"referenceName": "DelimitedText1",
 						"type": "DatasetReference",
 						"parameters": {
-							"folderPath": "raw/AdventureWorksLT2017/Full",
+							"folderPath": "AdventureWorksLT2017/Full",
 							"filePath": "SalesLT.Product.csv"
 						}
 					}
