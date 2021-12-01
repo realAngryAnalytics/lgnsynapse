@@ -47,7 +47,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"schemaName": "SalesLT",
-							"tableName": "Products"
+							"tableName": "Product"
 						}
 					}
 				],
