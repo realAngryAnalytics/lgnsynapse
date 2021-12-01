@@ -1,0 +1,37 @@
+{
+	"name": "SQLIncrementalLoadToDelta",
+	"properties": {
+		"folder": {
+			"name": "Delta Loading"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "lgndatalake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "lgndatalake"
+				},
+				{
+					"dataset": {
+						"referenceName": "DelimitedText3",
+						"type": "DatasetReference"
+					},
+					"name": "incrementalcdcsqlrows"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "Join1"
+				},
+				{
+					"name": "DerivedColumns"
+				}
+			],
+			"script": "source(output(\n\t\tProductID as short,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as double,\n\t\tListPrice as double,\n\t\tSize as string,\n\t\tWeight as double,\n\t\tProductCategoryID as short,\n\t\tProductModelID as short,\n\t\tSellStartDate as timestamp,\n\t\tSellEndDate as timestamp,\n\t\tDiscontinuedDate as string,\n\t\tThumbNailPhoto as string,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delta',\n\tcompressionType: 'snappy',\n\tcompressionLevel: 'Fastest',\n\tfileSystem: 'raw',\n\tfolderPath: 'bronze/AdventureWorksLT2017/SalesLT.Product') ~> lgndatalake\nsource(output(\n\t\t{__$start_lsn} as string,\n\t\t{__$seqval} as string,\n\t\t{__$operation} as string,\n\t\t{__$update_mask} as string,\n\t\tProductID as short,\n\t\tName as string,\n\t\tProductNumber as string,\n\t\tColor as string,\n\t\tStandardCost as string,\n\t\tListPrice as string,\n\t\tSize as string,\n\t\tWeight as string,\n\t\tProductCategoryID as string,\n\t\tProductModelID as string,\n\t\tSellStartDate as string,\n\t\tSellEndDate as string,\n\t\tDiscontinuedDate as string,\n\t\tThumbNailPhoto as string,\n\t\tThumbnailPhotoFileName as string,\n\t\trowguid as string,\n\t\tModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> incrementalcdcsqlrows\nlgndatalake, incrementalcdcsqlrows join(lgndatalake@ProductID == incrementalcdcsqlrows@ProductID,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> Join1\nJoin1 derive(ProductID = iifNull(incrementalcdcsqlrows@ProductID,lgndatalake@ProductID),\n\t\tDeleteRequired = iif(and(isNull(incrementalcdcsqlrows@ProductID),!isNull(lgndatalake@ProductID)),true(),false()),\n\t\tInsertRequired = iif(and(!isNull(incrementalcdcsqlrows@ProductID),isNull(lgndatalake@ProductID)),true(),false()),\n\t\tUpdateRequired = iif(incrementalcdcsqlrows@ModifiedDate>lgndatalake@Mlgndatalake@ModifiedDate())) ~> DerivedColumns"
+		}
+	}
+}
