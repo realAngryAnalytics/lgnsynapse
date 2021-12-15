@@ -1,0 +1,10 @@
+{
+	"name": "lgnframework",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://lgnframework.vault.azure.net/"
+		}
+	}
+}
