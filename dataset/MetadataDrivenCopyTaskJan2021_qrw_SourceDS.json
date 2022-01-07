@@ -1,0 +1,33 @@
+{
+	"name": "MetadataDrivenCopyTaskJan2021_qrw_SourceDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lnewportazuresql",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_schema": {
+				"type": "String"
+			},
+			"cw_table": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTaskJan2021_qrw_20220107"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().cw_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().cw_table",
+				"type": "Expression"
+			}
+		}
+	}
+}
