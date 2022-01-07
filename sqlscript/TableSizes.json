@@ -1,0 +1,20 @@
+{
+	"name": "TableSizes",
+	"properties": {
+		"folder": {
+			"name": "_admin"
+		},
+		"content": {
+			"query": "select *\nfrom dbo.vTableSizes\nwhere two_part_name in\n    (\n    select two_part_name\n    from dbo.vTableSizes\n    where row_count > 0\n    group by two_part_name\n    having (max(row_count * 1.000) - min(row_count * 1.000))/max(row_count * 1.000) >= .10\n    )\norder by two_part_name, row_count\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SampleSQL",
+				"poolName": "SampleSQL"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
