@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "lgnsynapse"
 		},
+		"AzureSynapseAnalytics1_connectionString": {
+			"value": ""
+		},
 		"SL3SQL_connectionString": {
 			"value": ""
 		},
@@ -25,6 +28,12 @@
 		},
 		"lgndatalake_properties_typeProperties_url": {
 			"value": "https://lgndatalake.dfs.core.windows.net"
+		},
+		"lgnframework_properties_typeProperties_baseUrl": {
+			"value": "https://lgnframework.vault.azure.net/"
+		},
+		"lgnframeworksql_properties_typeProperties_connectionString_secretName": {
+			"value": "lgnframeworksqlconnstring"
 		},
 		"lgnsynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://lgnsynapselake.dfs.core.windows.net"
