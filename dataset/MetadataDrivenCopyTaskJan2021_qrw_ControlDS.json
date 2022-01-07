@@ -1,0 +1,19 @@
+{
+	"name": "MetadataDrivenCopyTaskJan2021_qrw_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lnewportazuresql",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTaskJan2021_qrw_20220107"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MainControlTable_Jan2021"
+		}
+	}
+}
