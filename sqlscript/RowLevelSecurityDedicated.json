@@ -1,0 +1,17 @@
+{
+	"name": "RowLevelSecurityDedicated",
+	"properties": {
+		"content": {
+			"query": "----------------------------------Row-Level Security (RLS), 1: Filter predicates------------------------------------------------------------------\n-- Step:1 The Sale table has two Analyst values: DataAnalystMiami and DataAnalystSanDiego. \n--     Each analyst has jurisdiction across a specific Region. DataAnalystMiami on the South East Region\n--      and DataAnalystSanDiego on the Far West region.\nSELECT DISTINCT Analyst, Region FROM wwi_security.Sale order by Analyst ;\n\n/* Scenario: WWI requires that an Analyst only see the data for their own data from their own region. The CEO should see ALL data.\n    In the Sale table, there is an Analyst column that we can use to filter data to a specific Analyst value. */\n\n/* We will define this filter using what is called a Security Predicate. This is an inline table-valued function that allows\n    us to evaluate additional logic, in this case determining if the Analyst executing the query is the same as the Analyst\n    specified in the Analyst column in the row. The function returns 1 (will return the row) when a row in the Analyst column is the same as the \n    user executing the query (@Analyst = USER_NAME()) or if the user executing the query is the CEO user (USER_NAME() = 'CEO')\n    whom has access to all data.\n*/\n\n-- Review any existing security predicates in the database\nSELECT * FROM sys.security_predicates\n\n--Step:2 Create a new Schema to hold the security predicate, then define the predicate function. It returns 1 (or True) when\n--  a row should be returned in the parent query.\nGO\n\nCREATE FUNCTION wwi_security.fn_securitypredicate(@Analyst AS sysname)  \n    RETURNS TABLE  \nWITH SCHEMABINDING  \nAS  \n    RETURN SELECT 1 AS fn_securitypredicate_result\n    WHERE @Analyst = USER_NAME() OR USER_NAME() = 'CEO'\nGO\n-- Now we define security policy that adds the filter predicate to the Sale table. This will filter rows based on their login name.\nCREATE SECURITY POLICY SalesFilter  \nADD FILTER PREDICATE wwi_security.fn_securitypredicate(Analyst)\nON wwi_security.Sale\nWITH (STATE = ON);\n\n------ Allow SELECT permissions to the Sale Table.------\nGRANT SELECT ON wwi_security.Sale TO CEO, DataAnalystMiami, DataAnalystSanDiego;\n\n-- Step:3 Let us now test the filtering predicate, by selecting data from the Sale table as 'DataAnalystMiami' user.\nEXECUTE AS USER = 'DataAnalystMiami' \nSELECT * FROM wwi_security.Sale;\nrevert;\n-- As we can see, the query has returned rows here Login name is DataAnalystMiami\n\n-- Step:4 Let us test the same for  'DataAnalystSanDiego' user.\nEXECUTE AS USER = 'DataAnalystSanDiego';\nSELECT * FROM wwi_security.Sale;\nrevert;\n-- RLS is working indeed.\n\n-- Step:5 The CEO should be able to see all rows in the table.\nEXECUTE AS USER = 'CEO';  \nSELECT * FROM wwi_security.Sale;\nrevert;\n-- And he can.\n\n--Step:6 To disable the security policy we just created above, we execute the following.\nALTER SECURITY POLICY SalesFilter  \nWITH (STATE = OFF);\n\nDROP SECURITY POLICY SalesFilter;\nDROP FUNCTION wwi_security.fn_securitypredicate;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
