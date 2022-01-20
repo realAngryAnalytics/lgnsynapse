@@ -1,0 +1,17 @@
+{
+	"name": "RowLevelSecurityServerless",
+	"properties": {
+		"content": {
+			"query": "create or alter view dbo.covid as\nselect *\nfrom openrowset(\n    bulk 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    format = 'parquet') as rows\n\n\n/*\n( USER_NAME = 'jovan@adventureworks.com' AND geo_id = 'RS' )\nOR\n( USER IS IN ROLE 'AfricaAnalyst' AND continent_exp = 'Africa' )\n*/\n\nCREATE ROLE AfricaAnalyst;\n\nCREATE USER [jovan@contoso.com] FROM EXTERNAL PROVIDER\nCREATE USER [petar@contoso.com] FROM EXTERNAL PROVIDER\nCREATE USER [petar@contoso.com] FROM EXTERNAL PROVIDER\n\nALTER ROLE AfricaAnalyst ADD MEMBER [jovan@contoso.com];\nALTER ROLE AfricaAnalyst ADD MEMBER [petar@contoso.com];\nALTER ROLE AfricaAnalyst ADD MEMBER [nikola@contoso.com];\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
