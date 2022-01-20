@@ -1,0 +1,10 @@
+{
+	"name": "us-employment-hours-earnings-state",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"sasUri": "https://azureopendatastorage.blob.core.windows.net/laborstatisticscontainer/ehe_state/?\"\""
+		}
+	}
+}
