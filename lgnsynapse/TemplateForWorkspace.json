@@ -7960,7 +7960,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "90aff6da-ce60-4dc3-bbe0-39e4c5f080e6"
+						"spark.autotune.trackingId": "6a6cf298-ee42-4552-8171-11c834b80f8f"
 					}
 				},
 				"metadata": {
@@ -8009,7 +8009,7 @@
 							"synapsepassword = TokenLibrary.getSecret('lnakv', 'lnewportdbpassword')"
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": 3
 					},
 					{
 						"cell_type": "code",
@@ -8022,7 +8022,7 @@
 							" %%pyspark\r\n",
 							"jdbcDF = spark.read.format(\"jdbc\") \\\r\n",
 							"     .option(\"url\", f\"jdbc:sqlserver://lnewport.database.windows.net:1433;database=AdventureWorks\") \\\r\n",
-							"     .option(\"dbtable\",\"drivers\") \\\r\n",
+							"     .option(\"dbtable\",\"[Auxiliary].[Calendar]\") \\\r\n",
 							"     .option(\"user\", TokenLibrary.getSecret('lnakv', 'lnewportdbuser')) \\\r\n",
 							"     .option(\"password\",TokenLibrary.getSecret('lnakv', 'lnewportdbpassword')) \\\r\n",
 							"     .option(\"driver\",\"com.microsoft.sqlserver.jdbc.SQLServerDriver\") \\\r\n",
@@ -8056,7 +8056,45 @@
 							"print(connection_string)"
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"mssparkutils.notebook.help()"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
