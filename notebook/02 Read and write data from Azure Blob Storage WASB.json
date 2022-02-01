@@ -1,0 +1,265 @@
+{
+	"name": "02 Read and write data from Azure Blob Storage WASB",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "781ad6b1-93aa-4374-ab9f-2a69b2763983"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Access data on Azure Storage Blob (WASB) with Synapse Spark\n",
+					"\n",
+					"You can access data on Azure Storage Blob (WASB) with Synapse Spark via following URL:\n",
+					"\n",
+					"    wasb[s]://<container_name>@<storage_account_name>.blob.core.windows.net/<path>\n",
+					"\n",
+					"This notebook provides examples of how to read data from WASB into a Spark context and how to write the output of Spark jobs directly into a WASB location."
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Load a sample data\n",
+					"\n",
+					"Let's first load the [public holidays](https://azure.microsoft.com/en-us/services/open-datasets/catalog/public-holidays/) of last 6 months from Azure Open datasets as a sample."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from azureml.opendatasets import PublicHolidays\n",
+					"\n",
+					"from datetime import datetime\n",
+					"from dateutil import parser\n",
+					"from dateutil.relativedelta import relativedelta\n",
+					"\n",
+					"\n",
+					"end_date = datetime.today()\n",
+					"start_date = datetime.today() - relativedelta(months=6)\n",
+					"hol = PublicHolidays(start_date=start_date, end_date=end_date)\n",
+					"hol_df = hol.to_spark_dataframe()"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Display 5 rows\n",
+					"hol_df.show(5, truncate = False)"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Write data to Azure Storage Blob\n",
+					"\n",
+					"Synapse leverage **Shared access signature (SAS)** to access Azure Blob Storage. To avoid exposing SAS keys in the code, we recommend creating a new linked service in Synapse workspace to the Azure Blob Storage account you want to access.\n",
+					"\n",
+					"Follow these steps to add a new linked service for an Azure Blob Storage account:\n",
+					"\n",
+					"1. Open the [Azure Synapse Studio](https://web.azuresynapse.net/).\n",
+					"2. Select **Manage** from the left panel and select **Linked services** under the **External connections**.\n",
+					"3. Search **Azure Blob Storage** in the **New linked Service** panel on the right.\n",
+					"4. Select **Continue**.\n",
+					"5. Select the Azure Blob Storage Account to access and configure the linked service name. Suggest using **Account key** for the **Authentication method**.\n",
+					"6. Select **Test connection** to validate the settings are correct.\n",
+					"7. Select **Create** first and click **Publish all** to save your changes.\n",
+					"\n",
+					"You can access data on Azure Blob Storage with Synapse Spark via following URL:\n",
+					"\n",
+					"```wasb[s]://<container_name>@<storage_account_name>.blob.core.windows.net/```\n",
+					"\n",
+					"Please make sure to allow contatiner level read and write permission. Fill in the access info for your Azure storage blob in the cell below. \n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql import SparkSession\n",
+					"from pyspark.sql.types import *\n",
+					"\n",
+					"# Azure storage access info\n",
+					"blob_account_name = 'Your blob name' # replace with your blob name\n",
+					"blob_container_name = 'Your container name' # replace with your container name\n",
+					"blob_relative_path = 'Your relative path' # replace with your relative folder path\n",
+					"linked_service_name = 'Your linked service name' # replace with your linked service name\n",
+					"\n",
+					"blob_sas_token = mssparkutils.credentials.getConnectionStringOrCreds(linked_service_name)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Allow SPARK to access from Blob remotely\n",
+					"wasbs_path = 'wasbs://%s@%s.blob.core.windows.net/%s' % (blob_container_name, blob_account_name, blob_relative_path)\n",
+					"spark.conf.set('fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name), blob_sas_token)\n",
+					"print('Remote blob path: ' + wasbs_path)"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Save a dataframe as Parquet, JSON or CSV\n",
+					"If you have a dataframe, you can save it to Parquet or JSON with the .write.parquet(), .write.json() and .write.csv() methods respectively.\n",
+					"\n",
+					"Dataframes can be saved in any format, regardless of the input format.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"parquet_path = wasbs_path + 'holiday.parquet'\n",
+					"json_path = wasbs_path + 'holiday.json'\n",
+					"csv_path = wasbs_path + 'holiday.csv'\n",
+					"print('parquet file path: ' + parquet_path)\n",
+					"print('json file path： ' + json_path)\n",
+					"print('csv file path: ' + csv_path)"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"hol_df.write.parquet(parquet_path, mode = 'overwrite')\n",
+					"hol_df.write.json(json_path, mode = 'overwrite')\n",
+					"hol_df.write.csv(csv_path, mode = 'overwrite', header = 'true')"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Save a dataframe as text files\n",
+					"If you have a dataframe that you want ot save as text file, you must first covert it to an RDD and then save that RDD as a text file.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Define the text file path\n",
+					"text_path = wasbs_path + 'holiday.txt'\n",
+					"print('text file path: ' + text_path)"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Covert spark dataframe into RDD \n",
+					"hol_RDD = hol_df.rdd\n",
+					"type(hol_RDD)"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"If you have an RDD, you can convert it to a text file like the following:\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					" # Save RDD as text file\n",
+					"hol_RDD.saveAsTextFile(text_path)"
+				],
+				"execution_count": 12
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Read data from Azure Storage Blob\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Create a dataframe from parquet files\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_parquet = spark.read.parquet(parquet_path)"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Create a dataframe from JSON files\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_json = spark.read.json(json_path)"
+				],
+				"execution_count": 14
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Create a dataframe from CSV files\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_csv = spark.read.csv(csv_path, header = 'true')"
+				],
+				"execution_count": 15
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Create an RDD from text file\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"text = sc.textFile(text_path)"
+				],
+				"execution_count": 16
+			}
+		]
+	}
+}

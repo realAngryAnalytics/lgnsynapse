@@ -1,0 +1,285 @@
+{
+	"name": "Updates and GDPR using Delta Lake - PySpark",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "a4964640-eeaf-4d2f-b252-8eaa8aaf92ee"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"source": [
+					"#  Updates and GDPR using Delta Lake - PySpark\n",
+					"\n",
+					"In this notebook, we will review Delta Lake's end-to-end capabilities in PySpark. You can also look at the original Quick Start guide if you are not familiar with [Delta Lake](https://github.com/delta-io/delta) [here](https://docs.delta.io/latest/quick-start.html). It provides code snippets that show how to read from and write to Delta Lake tables from interactive, batch, and streaming queries.\n",
+					"\n",
+					"In this notebook, we will cover the following:\n",
+					"\n",
+					"- Creating sample mock data containing customer orders\n",
+					"- Writing this data into storage in Delta Lake table format (or in short, Delta table)\n",
+					"- Querying the Delta table using functional and SQL\n",
+					"- The Curious Case of Forgotten Discount - Making corrections to data\n",
+					"- Enforcing GDPR on your data\n",
+					"- Oops, enforced it on the wrong customer! - Looking at the audit log to find mistakes in operations\n",
+					"- Rollback all the way!\n",
+					"- Closing the loop - 'defrag' your data"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Creating sample mock data containing customer orders\n",
+					"\n",
+					"For this tutorial, we will setup a sample file containing customer orders with a simple schema: (order_id, order_date, customer_name, price)."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"spark.sql(\"DROP TABLE IF EXISTS input\");\n",
+					"spark.sql(\"\"\"\n",
+					"          CREATE TEMPORARY VIEW input \n",
+					"          AS SELECT 1 order_id, '2019-11-01' order_date, 'Saveen' customer_name, 100 price\n",
+					"          UNION ALL SELECT 2, '2019-11-01', 'Terry', 50\n",
+					"          UNION ALL SELECT 3, '2019-11-01', 'Priyanka', 100\n",
+					"          UNION ALL SELECT 4, '2019-11-02', 'Steve', 10\n",
+					"          UNION ALL SELECT 5, '2019-11-03', 'Rahul', 10\n",
+					"          UNION ALL SELECT 6, '2019-11-03', 'Niharika', 75\n",
+					"          UNION ALL SELECT 7, '2019-11-03', 'Elva', 90\n",
+					"          UNION ALL SELECT 8, '2019-11-04', 'Andrew', 70\n",
+					"          UNION ALL SELECT 9, '2019-11-05', 'Michael', 20\n",
+					"          UNION ALL SELECT 10, '2019-11-05', 'Brigit', 25\"\"\")\n",
+					"orders = spark.sql(\"SELECT * FROM input\")\n",
+					"orders.show()\n",
+					"orders.printSchema()"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Writing this data into storage in Delta Lake table format (or in short, Delta table)\n",
+					"\n",
+					"To create a Delta Lake table, you can write a DataFrame out in the **delta** format. You can use existing Spark SQL code and change the format from parquet, csv, json, and so on, to delta. These operations create a new Delta Lake table using the schema that was inferred from your DataFrame. \n",
+					"\n",
+					"If you already have existing data in Parquet format, you can do an \"in-place\" conversion to Delta Lake format. The code would look like following:\n",
+					"\n",
+					"DeltaTable.convertToDelta(spark, $\"parquet.`{path_to_data}`\");\n",
+					"\n",
+					"//Confirm that the converted data is now in the Delta format\n",
+					"DeltaTable.isDeltaTable(parquetPath)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import random\n",
+					"\n",
+					"session_id = random.randint(0,1000)\n",
+					"path = \"/delta/delta-table-{0}\".format(session_id)\n",
+					"path"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Here's how you'd do this in Parquet: \n",
+					"# orders.repartition(1).write().format(\"parquet\").save(path)\n",
+					"\n",
+					"orders.repartition(1).write.format(\"delta\").save(path)"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Querying the Delta table using functional and SQL\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"ordersDataFrame = spark.read.format(\"delta\").load(path)\n",
+					"ordersDataFrame.show()"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"ordersDataFrame.createOrReplaceTempView(\"ordersDeltaTable\")\n",
+					"spark.sql(\"SELECT * FROM ordersDeltaTable\").show"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Understanding Meta-data\n",
+					"\n",
+					"In Delta Lake, meta-data is no different from data i.e., it is stored next to the data. Therefore, an interesting side-effect here is that you can peek into meta-data using regular Spark APIs. "
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"[log_line.value for log_line in spark.read.text(path + \"/_delta_log/\").collect()]"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# The Curious Case of Forgotten Discount - Making corrections to data\n",
+					"\n",
+					"Now that you are able to look at the orders table, you realize that you forgot to discount the orders that came in on November 1, 2019. Worry not! You can quickly make that correction."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from delta.tables import *\n",
+					"from pyspark.sql.functions import *\n",
+					"\n",
+					"table = DeltaTable.forPath(spark, path)\n",
+					"\n",
+					"# Update every transaction that took place on November 1, 2019 and apply a discount of 10%\n",
+					"table.update(\n",
+					"  condition = expr(\"order_date == '2019-11-01'\"),\n",
+					"  set = {\"price\": expr(\"price - price*0.1\") })"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"table.toDF()"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"When you now inspect the meta-data, what you will notice is that the original data is over-written. Well, not in a true sense but appropriate entries are added to Delta's transaction log so it can provide an \"illusion\" that the original data was deleted. We can verify this by re-inspecting the meta-data. You will see several entries indicating reference removal to the original data."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"[log_line.value for log_line in spark.read.text(path + \"/_delta_log/\").collect()]"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Enforcing GDPR on your data\n",
+					"\n",
+					"One of your customers wanted their data to be deleted. But wait, you are working with data stored on an immutable file system (e.g., HDFS, ADLS, WASB). How would you delete it? Using Delta Lake's Delete API.\n",
+					"\n",
+					"Delta Lake provides programmatic APIs to conditionally update, delete, and merge (upsert) data into tables. For more information on these operations, see [Table Deletes, Updates, and Merges](https://docs.delta.io/latest/delta-update.html)."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Delete the appropriate customer\n",
+					"table.delete(condition = expr(\"customer_name == 'Saveen'\"))\n",
+					"table.toDF().show()"
+				],
+				"execution_count": 11
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Oops, enforced it on the wrong customer! - Looking at the audit/history log to find mistakes in operations\n",
+					"\n",
+					"Delta's most powerful feature is the ability to allow looking into history i.e., the changes that were made to the underlying Delta Table. The cell below shows how simple it is to inspect the history.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"table.history().drop(\"userId\", \"userName\", \"job\", \"notebook\", \"clusterId\", \"isolationLevel\", \"isBlindAppend\").show(20, 1000, False)"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Rollback all the way using Time Travel!\n",
+					"\n",
+					"You can query previous snapshots of your Delta Lake table by using a feature called Time Travel. If you want to access the data that you overwrote, you can query a snapshot of the table before you overwrote the first set of data using the versionAsOf option.\n",
+					"\n",
+					"Once you run the cell below, you should see the first set of data, from before you overwrote it. Time Travel is an extremely powerful feature that takes advantage of the power of the Delta Lake transaction log to access data that is no longer in the table. Removing the version 0 option (or specifying version 1) would let you see the newer data again. For more information, see [Query an older snapshot of a table (time travel)](https://docs.delta.io/latest/delta-batch.html#deltatimetravel)."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"spark.read.format(\"delta\").option(\"versionAsOf\", \"1\").load(path).write.mode(\"overwrite\").format(\"delta\").save(path)"
+				],
+				"execution_count": 15
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Delete the correct customer - REMOVE\n",
+					"table.delete(condition = expr(\"customer_name == 'Rahul'\"))\n",
+					"table.toDF().show()"
+				],
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"table.history().drop(\"userId\", \"userName\", \"job\", \"notebook\", \"clusterId\", \"isolationLevel\", \"isBlindAppend\").show(20, 1000, False)"
+				],
+				"execution_count": 17
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Closing the loop - 'defrag' your data\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"spark.conf.set(\"spark.databricks.delta.retentionDurationCheck.enabled\", \"false\")\n",
+					"table.vacuum(0.01)\n",
+					"\n",
+					"# Alternate Syntax: spark.sql($\"VACUUM delta.`{path}`\").show"
+				],
+				"execution_count": 19
+			}
+		]
+	}
+}
