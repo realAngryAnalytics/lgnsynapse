@@ -7,7 +7,7 @@
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "ServerlessSQL",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000
