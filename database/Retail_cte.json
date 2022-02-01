@@ -1,0 +1,24 @@
+{
+	"name": "Retail_cte",
+	"properties": {
+		"Description": "",
+		"Name": "Retail_cte",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"DerivedModelDBInfo": "{\"ModelDirectives\":{\"BaseModel\":{\"Name\":\"Retail\",\"Version\":\"0.1.0\"}}}",
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://lgnsynapsefs@lgnsynapselake.dfs.core.windows.net/Retail_cte",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "lgnsynapse-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}

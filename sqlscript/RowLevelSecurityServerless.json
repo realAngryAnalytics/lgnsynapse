@@ -1,0 +1,17 @@
+{
+	"name": "RowLevelSecurityServerless",
+	"properties": {
+		"content": {
+			"query": "--alternate for dedicated pools (https://docs.microsoft.com/en-us/sql/relational-databases/security/row-level-security?view=sql-server-ver15)\n\n\ncreate or alter view dbo.covid as\nselect *\nfrom openrowset(\n    bulk 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    format = 'parquet') as rows\n\n\n/*\n( USER_NAME = 'jovan@adventureworks.com' AND geo_id = 'RS' )\nOR\n( USER IS IN ROLE 'AfricaAnalyst' AND continent_exp = 'Africa' )\n*/\n\nCREATE ROLE AfricaAnalyst;\n\nCREATE USER [jovan@contoso.com] FROM EXTERNAL PROVIDER\nCREATE USER [petar@contoso.com] FROM EXTERNAL PROVIDER\nCREATE USER [petar@contoso.com] FROM EXTERNAL PROVIDER\n\nALTER ROLE AfricaAnalyst ADD MEMBER [jovan@contoso.com];\nALTER ROLE AfricaAnalyst ADD MEMBER [petar@contoso.com];\nALTER ROLE AfricaAnalyst ADD MEMBER [nikola@contoso.com];\n\ncreate or alter view dbo.covid as\nselect *\nfrom openrowset(\n    bulk 'https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.parquet',\n    format = 'parquet') as rows\nWHERE\n( SUSER_SNAME() = 'jovan@adventureworks.com' AND geo_id = 'RS')\nOR\n( IS_ROLEMEMBER('AfricaAnalyst', SUSER_SNAME()) = 1 AND continent_exp = 'Africa')\n\n--operationalize in TVF\n\ncreate schema secure\ngo\n\ncreate or alter function secure.geo_predicate(@geo_id varchar(20),\n                                              @continent_exp varchar(20))\nreturns table\nreturn (\n    select condition = 1\n    WHERE\n    (SUSER_SNAME() = 'jovanpop@adventureworks.com' AND _id = 'RS')\n    OR\n    (IS_ROLEMEMBER('AfricaAnalyst', SUSER_SNAME())=1 AND continent_exp='Africa')\n)\n\ncreate or alter view secure.covid\nas\nselect *\nfrom dbo.covid\n    cross apply security.geo_predicate(geo_id, continent_exp)\ngo\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

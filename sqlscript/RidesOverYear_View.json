@@ -1,0 +1,17 @@
+{
+	"name": "RidesOverYear_View",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [current_year]\n,[rides_per_year]\n FROM [dbo].[RidesOverYear]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "ServerlessSQL",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

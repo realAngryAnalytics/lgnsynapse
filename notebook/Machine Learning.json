@@ -1,0 +1,564 @@
+{
+	"name": "Machine Learning",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "ebb4e211-296c-4f7d-b263-df551f2e290f"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Train a classifier to determine product seasonality\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"See installed packages\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pkg_resources\n",
+					"for d in pkg_resources.working_set:\n",
+					"     print(d)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Import all necessary libraries.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from sklearn.preprocessing import StandardScaler, MinMaxScaler, Normalizer\n",
+					"from sklearn.decomposition import PCA\n",
+					"from sklearn.model_selection import train_test_split\n",
+					"from sklearn.metrics import accuracy_score\n",
+					"\n",
+					"from xgboost import XGBClassifier\n",
+					"\n",
+					"from onnxmltools.convert import convert_xgboost\n",
+					"from onnxmltools.convert.common.data_types import FloatTensorType\n",
+					"\n",
+					"import numpy as np\n",
+					"import pandas as pd\n",
+					"import matplotlib.pyplot as plt"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Exploratory data analysis (basic stats)\n",
+					"\n",
+					"Create Spark temporary views for sales and products.\n",
+					"\n",
+					"**IMPORTANT!** Make sure the name of the SQL pool (`SQLPool01` below) matches the name of your SQL pool.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"diagram": {
+						"activateDiagramType": 1,
+						"chartConfig": {
+							"category": "bar",
+							"keys": [
+								"Seasonality"
+							],
+							"values": [
+								"ProductId"
+							],
+							"yLabel": "ProductId",
+							"xLabel": "Seasonality",
+							"aggregation": "SUM",
+							"aggByBackend": false
+						},
+						"aggData": "{\"ProductId\":{\"1\":771373,\"2\":247930,\"3\":262978}}",
+						"isSummary": false,
+						"previewData": {
+							"filter": null
+						},
+						"isSql": false
+					}
+				},
+				"source": [
+					"%%spark\n",
+					"val df = spark.read.sqlanalytics(\"#SQL_POOL_NAME#.wwi.SaleSmall\") \n",
+					"df.createOrReplaceTempView(\"sale\")\n",
+					"\n",
+					"val df2 = spark.read.sqlanalytics(\"#SQL_POOL_NAME#.wwi.Product\") \n",
+					"df2.createOrReplaceTempView(\"product\")\n",
+					"display(df2)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Load daily product sales from the SQL pool.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"sqlQuery = \"\"\"\n",
+					"SELECT\n",
+					"    P.ProductId\n",
+					"    ,P.Seasonality\n",
+					"    ,S.TransactionDateId\n",
+					"    ,COUNT(*) as TransactionItemsCount\n",
+					"FROM\n",
+					"    sale S\n",
+					"    JOIN product P ON\n",
+					"        S.ProductId = P.ProductId\n",
+					"WHERE\n",
+					"    S.TransactionDateId NOT IN (20120229, 20160229)\n",
+					"GROUP BY\n",
+					"    P.ProductId\n",
+					"    ,P.Seasonality\n",
+					"    ,S.TransactionDateId\n",
+					"\"\"\"\n",
+					"\n",
+					"prod_df = spark.sql(sqlQuery)\n",
+					"prod_df.cache()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Check the number of records in the data farame (should be around 13 million rows)."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"prod_df.count()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Display some statistics about the data frame.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"diagram": {
+						"activateDiagramType": 1,
+						"chartConfig": {
+							"category": "bar",
+							"keys": [
+								"summary"
+							],
+							"values": [
+								"summary"
+							],
+							"yLabel": "summary",
+							"xLabel": "summary",
+							"aggregation": "COUNT",
+							"aggByBackend": false
+						},
+						"aggData": "{\"summary\":{\"count\":1,\"max\":1,\"mean\":1,\"min\":1,\"stddev\":1}}",
+						"isSummary": false,
+						"previewData": {
+							"filter": null
+						},
+						"isSql": false
+					}
+				},
+				"source": [
+					"display(prod_df.describe())"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Pivot the data frame to make daily sale items counts columns. \n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"prod_prep_df = prod_df.groupBy(['ProductId', 'Seasonality']).pivot('TransactionDateId').sum('TransactionItemsCount').toPandas()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Clean up the nulls and take a look at the result.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"prod_prep_df = prod_prep_df.fillna(0)\n",
+					"prod_prep_df.head(10)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Isloate features and prediction classes.\n",
+					"\n",
+					"Standardize features by removing the mean and scaling to unit variance.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"X = prod_prep_df.iloc[:, 2:].values\n",
+					"y = prod_prep_df['Seasonality'].values\n",
+					"\n",
+					"X_scale = StandardScaler().fit_transform(X)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Use PCA for dimensionality reduction\n",
+					"\n",
+					"Perform dimensionality reduction using Principal Components Analysis and two target components.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"pca = PCA(n_components=2)\n",
+					"principal_components = pca.fit_transform(X_scale)\n",
+					"principal_components = MinMaxScaler().fit_transform(principal_components)\n",
+					"\n",
+					"pca_df = pd.DataFrame(data = principal_components, columns = ['pc1', 'pc2'])\n",
+					"pca_df = pd.concat([pca_df, prod_prep_df[['Seasonality']]], axis = 1)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Display the products data frame in two dimensions (mapped to the two principal components).\n",
+					"\n",
+					"Note the clear separation of clusters.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"fig = plt.figure(figsize = (6,6))\n",
+					"ax = fig.add_subplot(1,1,1) \n",
+					"ax.set_xlabel('Principal Component 1', fontsize = 15)\n",
+					"ax.set_ylabel('Principal Component 2', fontsize = 15)\n",
+					"ax.set_title('2 component PCA', fontsize = 20)\n",
+					"targets = [1, 2, 3]\n",
+					"colors = ['r', 'g', 'b']\n",
+					"for target, color in zip(targets,colors):\n",
+					"    indicesToKeep = pca_df['Seasonality'] == target\n",
+					"    ax.scatter(pca_df.loc[indicesToKeep, 'pc1']\n",
+					"               , pca_df.loc[indicesToKeep, 'pc2']\n",
+					"               , c = color\n",
+					"               , s = 1)\n",
+					"ax.legend(['All Season Products', 'Summer Products', 'Winter Products'])\n",
+					"ax.plot([-0.05, 1.05], [0.77, 1.0], linestyle=':', linewidth=1, color='y')\n",
+					"ax.plot([-0.05, 1.05], [0.37, 0.6], linestyle=':', linewidth=1, color='y')\n",
+					"ax.grid()\n",
+					"\n",
+					"plt.show()\n",
+					"plt.close()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Redo the Principal Components Analysis, this time with twenty dimensions.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"def col_name(x):\n",
+					"    return f'f{x:02}'\n",
+					"\n",
+					"pca = PCA(n_components=20)\n",
+					"principal_components = pca.fit_transform(X_scale)\n",
+					"principal_components = MinMaxScaler().fit_transform(principal_components)\n",
+					"\n",
+					"X = pd.DataFrame(data = principal_components, columns = list(map(col_name, np.arange(0, 20))))\n",
+					"pca_df = pd.concat([X, prod_prep_df[['ProductId']]], axis = 1)\n",
+					"pca_automl_df = pd.concat([X, prod_prep_df[['Seasonality']]], axis = 1)\n",
+					"\n",
+					"X = X[:4500]\n",
+					"y = prod_prep_df['Seasonality'][:4500]\n",
+					"pca_automl_df = pca_automl_df[:4500]"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Save the PCA components to the SQL pool. - the `spark.sql.execution.arrow.fallback.enabled` warning can be safely ignored.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"pca_sdf = spark.createDataFrame(pca_df)\n",
+					"pca_sdf.createOrReplaceTempView(\"productpca\")"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "scala"
+					}
+				},
+				"source": [
+					"%%spark\n",
+					"// Make sure the name of the SQL pool (#SQL_POOL_NAME# below) matches the name of your SQL pool.\n",
+					"val df = spark.sqlContext.sql(\"select * from productpca\")\n",
+					"df.write.sqlanalytics(\"#SQL_POOL_NAME#.wwi_ml.ProductPCA\", Constants.INTERNAL)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Train ensemble of trees classifier (using XGBoost)\n",
+					"\n",
+					"Split into test and training data sets.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=123)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Train the ensemble classifier using XGBoost.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"model = XGBClassifier()\n",
+					"model.fit(X_train, y_train)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Perform predictions with the newly trained model.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"y_pred = model.predict(X_test)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Calculate the accuracy of the model using test data.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"accuracy = accuracy_score(y_test, y_pred)\n",
+					"print(\"Accuracy: %.2f%%\" % (accuracy * 100.0))"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Convert trained model to ONNX format.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"initial_types = [\n",
+					"    ('input', FloatTensorType([1, 20]))\n",
+					"]\n",
+					"\n",
+					"onnx_model = convert_xgboost(model, initial_types=initial_types)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Train classifier using Auto ML\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from azureml.core.experiment import Experiment\n",
+					"from azureml.core.workspace import Workspace\n",
+					"from azureml.train.automl.run import AutoMLRun\n",
+					"from azureml.train.automl import AutoMLConfig\n",
+					"from azureml.automl.runtime.onnx_convert import OnnxConverter"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"pca_automl_df.head(10)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Configure the connection to the Azure Machine Learning workspace. The Azure portal provides all the values below.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"subscription_id='#SUBSCRIPTION_ID#'         # ensure it matches your Azure subscription id\n",
+					"resource_group='#RESOURCE_GROUP_NAME#'      # ensure it matches your resource group name\n",
+					"workspace_name='#AML_WORKSPACE_NAME#'       # ensure it matches your Azure Machine Learning workspace name\n",
+					"ws = Workspace(subscription_id = subscription_id, resource_group = resource_group, workspace_name = workspace_name)\n",
+					"ws.write_config()\n",
+					"ws = Workspace.from_config()\n",
+					"experiment = Experiment(ws, \"Product_Seasonality\")"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Configure the Automated Machine Learning experiment and start it (will run on local compute resources).\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"automl_classifier_config = AutoMLConfig(\n",
+					"        task='classification',\n",
+					"        #experiment_exit_score = 0.995,\n",
+					"        experiment_timeout_minutes=15,\n",
+					"        enable_onnx_compatible_models=True,\n",
+					"        training_data=pca_automl_df,\n",
+					"        label_column_name='Seasonality',\n",
+					"        n_cross_validations=5,\n",
+					"        enable_voting_ensemble=False,\n",
+					"        enable_stack_ensemble=False\n",
+					"        )\n",
+					"\n",
+					"local_run = experiment.submit(automl_classifier_config, show_output=True)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Retrieve the best model directly in ONNX format and take a look at it.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"best_run, onnx_model2 = local_run.get_output(return_onnx_model=True)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"outputCollapsed": true
+				},
+				"source": [
+					"onnx_model2"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"Replace below the placeholders with the name of the primary data lake account and one of it's security keys."
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"modelPath = \"abfss://wwi-02@#DATA_LAKE_ACCOUNT_NAME#.dfs.core.windows.net/ml/onnx/product_seasonality_classifier.onnx\"\n",
+					"modelString = str(onnx_model2.SerializeToString())\n",
+					"mssparkutils.fs.put(modelPath, modelString)"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
