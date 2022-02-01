@@ -37,6 +37,15 @@
 		},
 		"lgnsynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://lgnsynapselake.dfs.core.windows.net"
+		},
+		"lnakv_properties_typeProperties_baseUrl": {
+			"value": "https://lnakv.vault.azure.net/"
+		},
+		"us-employment-hours-earnings-state_sasUri": {
+			"value": ""
+		},
+		"us-labor-force-statistics_sasUri": {
+			"value": ""
 		}
 	}
 }
