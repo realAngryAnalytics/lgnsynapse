@@ -1,6 +1,9 @@
 {
 	"name": "Delta Lake Feature Workarounds - Python",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3d2a1bf6-850b-4cbd-9136-2bd0038f7857"
+				"spark.autotune.trackingId": "7f58372e-ad30-43f2-9dbe-a064f20e69ee"
 			}
 		},
 		"metadata": {

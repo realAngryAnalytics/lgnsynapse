@@ -1,6 +1,9 @@
 {
 	"name": "01 Read and write data from Azure Data Lake Storage Gen2",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "7b29876a-6a41-439e-b93d-99752086d575"
+				"spark.autotune.trackingId": "f0805264-2f14-43b5-baed-53441246b63b"
 			}
 		},
 		"metadata": {

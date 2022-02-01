@@ -1,6 +1,9 @@
 {
 	"name": "06 Charting in Synapse Notebook",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "e46f749a-1177-472b-8c41-9fd1023b064b"
+				"spark.autotune.trackingId": "0f375387-c693-47c3-9e9b-ae197398635f"
 			}
 		},
 		"metadata": {

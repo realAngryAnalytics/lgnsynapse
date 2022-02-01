@@ -1,6 +1,9 @@
 {
 	"name": "04 Using Delta Lake in Azure Synapse",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "e9906bfd-2425-41ab-aebd-4431a2ac69a7"
+				"spark.autotune.trackingId": "66c08f9b-2a56-4af9-9444-71a5fab5d97a"
 			}
 		},
 		"metadata": {

@@ -1,6 +1,9 @@
 {
 	"name": "02 Read and write data from Azure Blob Storage WASB",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "781ad6b1-93aa-4374-ab9f-2a69b2763983"
+				"spark.autotune.trackingId": "be294df3-a0c5-4fb0-bbe6-99cb71dc94a7"
 			}
 		},
 		"metadata": {

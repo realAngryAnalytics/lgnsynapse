@@ -1,6 +1,9 @@
 {
 	"name": "tutorial-predict-nyc-taxi-tips-onnx",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "e888816b-1a7a-4de0-85a0-d3ca1136b1de"
+				"spark.autotune.trackingId": "01db0aec-3ba3-40c9-8aef-5aea427de8b7"
 			}
 		},
 		"metadata": {

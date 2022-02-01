@@ -1,6 +1,9 @@
 {
 	"name": "Hitchikers Guide to Delta Lake - Python",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "c605977e-b5f0-4c1a-b980-958c55ecc50d"
+				"spark.autotune.trackingId": "2bef361c-67f1-4665-91ef-e297abc22729"
 			}
 		},
 		"metadata": {

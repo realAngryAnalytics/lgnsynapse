@@ -1,6 +1,9 @@
 {
 	"name": "03 Read and write from SQL pool table",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "02909012-8d98-44dd-b118-a656ef65d210"
+				"spark.autotune.trackingId": "03f08ba7-5f9c-4a58-8cb1-846a37dd61cc"
 			}
 		},
 		"metadata": {

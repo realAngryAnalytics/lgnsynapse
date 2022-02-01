@@ -1,6 +1,9 @@
 {
 	"name": "08 Creating an unmanaged Spark Table",
 	"properties": {
+		"folder": {
+			"name": "PySpark"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"sessionProperties": {
@@ -13,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "af194cd8-d643-4b68-baee-d9f7d7a9b5c8"
+				"spark.autotune.trackingId": "67038103-ad37-4a7f-9fbb-6b591ce62035"
 			}
 		},
 		"metadata": {
