@@ -69,15 +69,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/lgnsynspark')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/MetadataDrivenCopyTaskJan2021_qrw_BottomLevel')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -7960,7 +7951,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "6a6cf298-ee42-4552-8171-11c834b80f8f"
+						"spark.autotune.trackingId": "c148c029-121c-4375-b0c0-f468c6a49098"
 					}
 				},
 				"metadata": {
@@ -7985,10 +7976,8 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 10,
 						"cores": 8,
-						"memory": 56,
-						"automaticScaleJobs": false
-					},
-					"sessionKeepAliveTimeout": 30
+						"memory": 56
+					}
 				},
 				"cells": [
 					{
@@ -8091,7 +8080,12 @@
 							}
 						},
 						"source": [
-							""
+							"# By default Synapse uses AAD passthrough for authentication\r\n",
+							"# However, Linked services can be used for storing and retreiving credentials (e.g, account key)\r\n",
+							"# Example connection string (for storage): \"DefaultEndpointsProtocol=https;AccountName=<accountname>;AccountKey=<accountkey>\"\r\n",
+							"\r\n",
+							"connection_string = TokenLibrary.getConnectionString(\"<linkedServiceName>\")\r\n",
+							"account_key = TokenLibrary.getConnectionStringAsMap(\"<linkedServiceName>\").get(\"AccountKey\")"
 						],
 						"outputs": [],
 						"execution_count": null
