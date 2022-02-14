@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "lgnsynapse"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
 		"AzureSynapseAnalytics1_connectionString": {
 			"value": ""
 		},
