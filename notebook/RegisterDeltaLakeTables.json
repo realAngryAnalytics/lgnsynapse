@@ -1,0 +1,93 @@
+{
+	"name": "RegisterDeltaLakeTables",
+	"properties": {
+		"folder": {
+			"name": "Delta"
+		},
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "lgnsynspark1",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 1,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "true",
+				"spark.dynamicAllocation.minExecutors": "1",
+				"spark.dynamicAllocation.maxExecutors": "4",
+				"spark.autotune.trackingId": "e35d2af9-caaf-4a16-b2a0-040308d72860"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "sql"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/65c04546-fce4-4b3c-be44-dac0e5324e24/resourceGroups/lgnsynapse/providers/Microsoft.Synapse/workspaces/lgnsynapse/bigDataPools/lgnsynspark1",
+				"name": "lgnsynspark1",
+				"type": "Spark",
+				"endpoint": "https://lgnsynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/lgnsynspark1",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.1",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": true
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"USE bronze;\r\n",
+					"CREATE TABLE IF NOT EXISTS Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
+					"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";       \r\n",
+					"CREATE TABLE IF NOT EXISTS CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
+					"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";  \r\n",
+					"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\"; \r\n",
+					"CREATE TABLE IF NOT EXISTS ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
+					"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";       \r\n",
+					"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
+					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";  "
+				],
+				"execution_count": 3
+			}
+		]
+	}
+}
