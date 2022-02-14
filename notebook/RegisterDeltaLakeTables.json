@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "true",
 				"spark.dynamicAllocation.minExecutors": "1",
 				"spark.dynamicAllocation.maxExecutors": "4",
-				"spark.autotune.trackingId": "e35d2af9-caaf-4a16-b2a0-040308d72860"
+				"spark.autotune.trackingId": "454ecf90-963c-4ac9-85ba-4f61c6ed0702"
 			}
 		},
 		"metadata": {
@@ -77,16 +77,52 @@
 				"source": [
 					"USE bronze;\r\n",
 					"CREATE TABLE IF NOT EXISTS Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
-					"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";       \r\n",
+					"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
-					"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";  \r\n",
-					"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\"; \r\n",
+					"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";\r\n",
+					"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
-					"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";       \r\n",
+					"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
-					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";  "
+					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 				],
-				"execution_count": 3
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"select * from bronze.Address"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"dbutils.fs.ls(\"/delta/\")"
+				],
+				"execution_count": null
 			}
 		]
 	}
