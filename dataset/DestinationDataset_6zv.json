@@ -1,0 +1,29 @@
+{
+	"name": "DestinationDataset_6zv",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_fileName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().cw_fileName",
+					"type": "Expression"
+				},
+				"folderPath": "raw/parquet",
+				"container": "data-lake"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
