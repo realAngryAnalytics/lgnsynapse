@@ -1,0 +1,50 @@
+{
+	"name": "JsonDS2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "raw/json",
+				"container": "data-lake"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"AddressID": {
+					"type": "integer"
+				},
+				"AddressLine1": {
+					"type": "string"
+				},
+				"AddressLine2": {
+					"type": "null"
+				},
+				"City": {
+					"type": "string"
+				},
+				"StateProvince": {
+					"type": "string"
+				},
+				"CountryRegion": {
+					"type": "string"
+				},
+				"PostalCode": {
+					"type": "string"
+				},
+				"rowguid": {
+					"type": "string"
+				},
+				"ModifiedDate": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

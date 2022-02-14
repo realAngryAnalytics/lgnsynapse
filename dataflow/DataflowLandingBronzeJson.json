@@ -1,0 +1,74 @@
+{
+	"name": "DataflowLandingBronzeJson",
+	"properties": {
+		"folder": {
+			"name": "Delta Loading"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "JsonDS2",
+						"type": "DatasetReference"
+					},
+					"name": "JsonRaw"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Delta"
+				}
+			],
+			"transformations": [
+				{
+					"name": "MetadataColumns"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     SourceTableName as string (\"\"),",
+				"     TargetTableName as string (\"\")",
+				"}",
+				"source(output(",
+				"          AddressID as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          StateProvince as string,",
+				"          CountryRegion as string,",
+				"          PostalCode as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     purgeFiles: true,",
+				"     rowUrlColumn: 'SourceFileName',",
+				"     documentForm: 'documentPerLine',",
+				"     wildcardPaths:[(concat(\"raw/json/\",$SourceTableName,\".json\"))]) ~> JsonRaw",
+				"JsonRaw derive(DateInserted = currentTimestamp()) ~> MetadataColumns",
+				"MetadataColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'data-lake',",
+				"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Delta"
+			]
+		}
+	}
+}
