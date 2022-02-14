@@ -1,0 +1,155 @@
+{
+	"name": "CopyRawToDelta",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_Json_List",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('JsonTables')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "DFFromJsonDelta",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "1.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DataflowLandingBronzeJson",
+									"type": "DataFlowReference",
+									"parameters": {
+										"SourceTableName": {
+											"value": "'@{item().source}'",
+											"type": "Expression"
+										},
+										"TargetTableName": {
+											"value": "'@{item().destination}'",
+											"type": "Expression"
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach_Parquet_List",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('ParquetTables')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "DFFromParquetDelta",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "1.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DataflowLandingBronzeParquet",
+									"type": "DataFlowReference",
+									"parameters": {
+										"SourceTableName": {
+											"value": "'@{item().source}'",
+											"type": "Expression"
+										},
+										"TargetTableName": {
+											"value": "'@{item().destination}'",
+											"type": "Expression"
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"JsonTables": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": "SalesLTCustomer",
+						"destination": "Customer"
+					},
+					{
+						"source": "SalesLTAddress",
+						"destination": "Address"
+					},
+					{
+						"source": "SalesLTCustomerAddress",
+						"destination": "CustomerAddress"
+					}
+				]
+			},
+			"ParquetTables": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": "SalesLTProduct",
+						"destination": "Product"
+					},
+					{
+						"source": "SalesLTProductCategory",
+						"destination": "ProductCategory"
+					},
+					{
+						"source": "SalesLTProductDescription",
+						"destination": "ProductDescription"
+					},
+					{
+						"source": "SalesLTProductModel",
+						"destination": "ProductModel"
+					},
+					{
+						"source": "SalesLTSalesOrderDetail",
+						"destination": "SalesOrderDetail"
+					},
+					{
+						"source": "SalesLTSalesOrderHeader",
+						"destination": "SalesOrderHeader"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "Delta/Bronze"
+		},
+		"annotations": []
+	}
+}
