@@ -1,0 +1,90 @@
+{
+	"name": "DataflowLandingBronzeParquet",
+	"properties": {
+		"folder": {
+			"name": "Delta Loading"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ParquetDS",
+						"type": "DatasetReference"
+					},
+					"name": "ParquetRaw"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Delta"
+				}
+			],
+			"transformations": [
+				{
+					"name": "MetadataColumns"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     SourceTableName as string (\"\"),",
+				"     TargetTableName as string (\"\")",
+				"}",
+				"source(output(",
+				"          vendorID as integer,",
+				"          lpepPickupDatetime as timestamp,",
+				"          lpepDropoffDatetime as timestamp,",
+				"          passengerCount as integer,",
+				"          tripDistance as double,",
+				"          puLocationId as string,",
+				"          doLocationId as string,",
+				"          pickupLongitude as double,",
+				"          pickupLatitude as double,",
+				"          dropoffLongitude as double,",
+				"          dropoffLatitude as double,",
+				"          rateCodeID as integer,",
+				"          storeAndFwdFlag as string,",
+				"          paymentType as integer,",
+				"          fareAmount as double,",
+				"          extra as double,",
+				"          mtaTax as double,",
+				"          improvementSurcharge as string,",
+				"          tipAmount as double,",
+				"          tollsAmount as double,",
+				"          ehailFee as double,",
+				"          totalAmount as double,",
+				"          tripType as integer,",
+				"          puYear as string,",
+				"          puMonth as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     purgeFiles: true,",
+				"     rowUrlColumn: 'SourceFileName',",
+				"     format: 'parquet',",
+				"     wildcardPaths:[(concat(\"raw/json/\",$SourceTableName,\".json\"))]) ~> ParquetRaw",
+				"ParquetRaw derive(DateInserted = currentTimestamp()) ~> MetadataColumns",
+				"MetadataColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'data-lake',",
+				"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Delta"
+			]
+		}
+	}
+}
