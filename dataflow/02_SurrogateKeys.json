@@ -55,7 +55,10 @@
 					"name": "Filter"
 				},
 				{
-					"name": "SurrogateKey"
+					"name": "GetSurrogateKey"
+				},
+				{
+					"name": "CalculateKey"
 				}
 			],
 			"scriptLines": [
@@ -167,7 +170,8 @@
 				"     skipDuplicateMapOutputs: true) ~> Select",
 				"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
 				"Select keyGenerate(output(ProductKey as long),",
-				"     startAt: 1L) ~> SurrogateKey",
+				"     startAt: 1L) ~> GetSurrogateKey",
+				"GetSurrogateKey derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey) ) ~> CalculateKey",
 				"Filter sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
