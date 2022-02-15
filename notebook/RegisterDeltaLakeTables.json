@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "true",
 				"spark.dynamicAllocation.minExecutors": "1",
 				"spark.dynamicAllocation.maxExecutors": "4",
-				"spark.autotune.trackingId": "454ecf90-963c-4ac9-85ba-4f61c6ed0702"
+				"spark.autotune.trackingId": "d5f43b55-399f-4c56-aa74-e185837161e4"
 			}
 		},
 		"metadata": {
@@ -59,7 +59,7 @@
 				"source": [
 					"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
 				],
-				"execution_count": 2
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
@@ -72,7 +72,8 @@
 						"transient": {
 							"deleting": false
 						}
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"USE bronze;\r\n",
@@ -86,7 +87,7 @@
 					"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 				],
-				"execution_count": null
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -99,12 +100,13 @@
 						"transient": {
 							"deleting": false
 						}
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
-					"select * from bronze.Address"
+					"select * from bronze.salesorderdetail"
 				],
-				"execution_count": null
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -117,12 +119,15 @@
 						"transient": {
 							"deleting": false
 						}
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
-					"dbutils.fs.ls(\"/delta/\")"
+					"SELECT 'SalesOrderDetail' as TableName, count(*) as RowCnt from bronze.salesorderdetail\r\n",
+					"UNION ALL\r\n",
+					"Select 'Product' as TableName, count(*) as RowCnt from bronze.product"
 				],
-				"execution_count": null
+				"execution_count": 6
 			}
 		]
 	}
