@@ -39,6 +39,13 @@
 			"sinks": [
 				{
 					"name": "LastKeyCache"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "UpdateWatermark"
 				}
 			],
 			"transformations": [
@@ -192,7 +199,23 @@
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 0) ~> LastKeyCache"
+				"     saveOrder: 0) ~> LastKeyCache",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/gold/dimWatermarks',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['TableName'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> UpdateWatermark"
 			]
 		}
 	}
