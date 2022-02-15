@@ -1,0 +1,109 @@
+{
+	"name": "Dataflow1",
+	"properties": {
+		"folder": {
+			"name": "Delta Loading/Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverProduct"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverCategory"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverModel"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "LookupCategory"
+				},
+				{
+					"name": "JoinModel"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as integer,",
+				"          Name as string,",
+				"          ProductNumber as string,",
+				"          Color as string,",
+				"          StandardCost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          DiscontinuedDate as timestamp,",
+				"          ThumbNailPhoto as binary,",
+				"          ThumbnailPhotoFileName as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          Size as string,",
+				"          Weight as decimal(8,2),",
+				"          ProductCategoryID as integer,",
+				"          ProductModelID as integer,",
+				"          SellStartDate as timestamp,",
+				"          SellEndDate as timestamp,",
+				"          SourceFileName as string,",
+				"          DateInserted as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/silver/Product') ~> SilverProduct",
+				"source(output(",
+				"          ProductCategoryID as integer,",
+				"          ParentProductCategoryID as integer,",
+				"          Name as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          SourceFileName as string,",
+				"          DateInserted as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/silver/ProductCategory') ~> SilverCategory",
+				"source(output(",
+				"          ProductModelID as integer,",
+				"          Name as string,",
+				"          CatalogDescription as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          SourceFileName as string,",
+				"          DateInserted as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/silver/ ProductModel') ~> SilverModel",
+				"SilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookupCategory",
+				"LookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,",
+				"     joinType:'inner',",
+				"     broadcast: 'auto')~> JoinModel"
+			]
+		}
+	}
+}
