@@ -55,7 +55,7 @@
 					"name": "Filter"
 				},
 				{
-					"name": "SurrogateKey1"
+					"name": "SurrogateKey"
 				}
 			],
 			"scriptLines": [
@@ -167,7 +167,7 @@
 				"     skipDuplicateMapOutputs: true) ~> Select",
 				"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
 				"Select keyGenerate(output(ProductKey as long),",
-				"     startAt: 1L) ~> SurrogateKey1",
+				"     startAt: 1L) ~> SurrogateKey",
 				"Filter sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
