@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "true",
 				"spark.dynamicAllocation.minExecutors": "1",
 				"spark.dynamicAllocation.maxExecutors": "4",
-				"spark.autotune.trackingId": "d85f14c9-ca24-41de-938e-b9056711a473"
+				"spark.autotune.trackingId": "ddcfe591-c4b7-4c67-a681-bbe677e3a2df"
 			}
 		},
 		"metadata": {
@@ -57,7 +57,7 @@
 					"collapsed": false
 				},
 				"source": [
-					"CREATE DATABASE IF NOT EXISTS bronze2 LOCATION \"/delta/bronze/\""
+					"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
 				],
 				"execution_count": 3
 			},
@@ -87,7 +87,7 @@
 					"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 				],
-				"execution_count": 4
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
