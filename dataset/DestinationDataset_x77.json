@@ -20,7 +20,7 @@
 					"type": "Expression"
 				},
 				"folderPath": "raw/json",
-				"container": "data-lake"
+				"container": "lgnsynapsefs"
 			}
 		},
 		"schema": {}
