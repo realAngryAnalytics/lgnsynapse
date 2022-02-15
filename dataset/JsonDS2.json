@@ -14,37 +14,6 @@
 				"container": "lgnsynapsefs"
 			}
 		},
-		"schema": {
-			"type": "object",
-			"properties": {
-				"AddressID": {
-					"type": "integer"
-				},
-				"AddressLine1": {
-					"type": "string"
-				},
-				"AddressLine2": {
-					"type": "null"
-				},
-				"City": {
-					"type": "string"
-				},
-				"StateProvince": {
-					"type": "string"
-				},
-				"CountryRegion": {
-					"type": "string"
-				},
-				"PostalCode": {
-					"type": "string"
-				},
-				"rowguid": {
-					"type": "string"
-				},
-				"ModifiedDate": {
-					"type": "string"
-				}
-			}
-		}
+		"schema": {}
 	}
 }
