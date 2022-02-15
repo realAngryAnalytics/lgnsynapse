@@ -1,0 +1,111 @@
+{
+	"name": "BronzeToSilver",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_table",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('Tables')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "DFFromBronzeSilver",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "1.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DataflowBronzeToSilver",
+									"type": "DataFlowReference",
+									"parameters": {
+										"SourceTableName": {
+											"value": "'@{item().source}'",
+											"type": "Expression"
+										},
+										"TargetTableName": {
+											"value": "'@{item().destination}'",
+											"type": "Expression"
+										},
+										"PrimaryKey": {
+											"value": "'@{item().primarykey}'",
+											"type": "Expression"
+										},
+										"TimestampColumn": {
+											"value": "'@{item().timestamp}'",
+											"type": "Expression"
+										}
+									}
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"Tables": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": "Address",
+						"destination": "Address",
+						"primarykey": "AddressID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "Product",
+						"destination": "Product",
+						"primarykey": "ProductID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductCategory",
+						"destination": "ProductCategory",
+						"primarykey": "ProductCategoryID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductDescription",
+						"destination": "ProductDescription",
+						"primarykey": "ProductDescriptionID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "ProductModel",
+						"destination": " ProductModel",
+						"primarykey": "ProductModelID",
+						"timestamp": "DateInserted"
+					},
+					{
+						"source": "SalesOrderHeader",
+						"destination": "SalesOrderHeader",
+						"primarykey": "SalesOrderID",
+						"timestamp": "DateInserted"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "Delta/Silver"
+		},
+		"annotations": []
+	}
+}
