@@ -1,6 +1,9 @@
 {
 	"name": "dimProduct",
 	"properties": {
+		"folder": {
+			"name": "Delta/Gold"
+		},
 		"content": {
 			"query": "\n\n\nCREATE EXTERNAL DATA SOURCE [DeltaLakeStorage] \n\tWITH (\n\t\tLOCATION = 'abfss://lgnsynapsefs@lgnsynapselake.dfs.core.windows.net/delta/' \n\t)\nGO\n\nCREATE EXTERNAL TABLE dimProduct (\n\t[ProductID] int,\n\t[Name] nvarchar(4000),\n\t[ProductNumber] nvarchar(4000),\n\t[Color] nvarchar(4000),\n\t[StandardCost] numeric(19,4),\n\t[ListPrice] numeric(19,4),\n\t[DiscontinuedDate] datetime2(7),\n\t[ThumbNailPhoto] varbinary(8000),\n\t[ThumbnailPhotoFileName] nvarchar(4000),\n\t[rowguid] nvarchar(4000),\n\t[ModifiedDate] datetime2(7),\n\t[Size] nvarchar(4000),\n\t[Weight] numeric(8,2),\n\t[ProductCategoryID] int,\n\t[ProductModelID] int,\n\t[SellStartDate] datetime2(7),\n\t[SellEndDate] datetime2(7),\n\t[SourceFileName] nvarchar(4000),\n\t[DateInserted] datetime2(7),\n\t[ParentProductCategoryID] int,\n\t[ProductCategory] nvarchar(4000),\n\t[ProductModel] nvarchar(4000),\n\t[CatalogDescription] nvarchar(4000),\n\t[ProductKey] bigint\n\t)\n\tWITH (\n\tLOCATION = 'gold/dimProduct/',\n\tDATA_SOURCE = [DeltaLakeStorage] ,\n\tFILE_FORMAT = [DeltaLakeFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM dbo.dimProduct\nGO\n\nDROP EXTERNAL DATA SOURCE [DeltaLakeStorage] \nDROP EXTERNAL TABLE dimProduct",
 			"metadata": {
