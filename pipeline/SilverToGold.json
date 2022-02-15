@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "02_SurrogateKeys",
+						"referenceName": "01_DimensionDenormalization",
 						"type": "DataFlowReference"
 					},
 					"compute": {
