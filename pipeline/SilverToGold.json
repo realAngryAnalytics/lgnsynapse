@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Product",
+				"name": "dimProduct",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
