@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "true",
 				"spark.dynamicAllocation.minExecutors": "1",
 				"spark.dynamicAllocation.maxExecutors": "4",
-				"spark.autotune.trackingId": "d5f43b55-399f-4c56-aa74-e185837161e4"
+				"spark.autotune.trackingId": "83ed35fa-fb65-40a8-b05d-9f31effa62ea"
 			}
 		},
 		"metadata": {
@@ -106,7 +106,7 @@
 				"source": [
 					"select * from bronze.salesorderdetail"
 				],
-				"execution_count": 3
+				"execution_count": 7
 			},
 			{
 				"cell_type": "code",

@@ -2,7 +2,7 @@
 	"name": "DataflowLandingBronzeParquet",
 	"properties": {
 		"folder": {
-			"name": "Delta Loading"
+			"name": "Delta Loading/Bronze"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {

@@ -15,10 +15,27 @@
 					"name": "BronzeDelta"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SilverDelta"
+				}
+			],
 			"transformations": [
 				{
 					"name": "AddMetadataColumns"
+				},
+				{
+					"name": "RankRowVersions"
+				},
+				{
+					"name": "Deduplicate"
+				},
+				{
+					"name": "RemoveMetadataColumns"
 				}
 			],
 			"scriptLines": [
@@ -28,14 +45,65 @@
 				"     PrimaryKey as string (\"\"),",
 				"     TimestampColumn as string (\"\")",
 				"}",
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          AddressID as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          StateProvince as string,",
+				"          CountryRegion as string,",
+				"          PostalCode as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string,",
+				"          CompanyName as string,",
+				"          CustomerID as string,",
+				"          EmailAddress as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          MiddleName as string,",
+				"          NameStyle as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          Phone as string,",
+				"          SalesPerson as string,",
+				"          Suffix as string,",
+				"          Title as string,",
+				"          SourceFileName as string,",
+				"          DateInserted as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'delta',",
 				"     container: 'lgnsynapsefs',",
 				"     folderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta",
 				"BronzeDelta derive(PkColumn = byName($PrimaryKey),",
-				"          TSColumn = byName($TimestampColumn)) ~> AddMetadataColumns"
+				"          TSColumn = byName($TimestampColumn)) ~> AddMetadataColumns",
+				"AddMetadataColumns window(over(PkColumn),",
+				"     desc(TSColumn, true),",
+				"     RowVersion = denseRank()) ~> RankRowVersions",
+				"RankRowVersions filter(RowVersion==1) ~> Deduplicate",
+				"Deduplicate select(mapColumn(",
+				"          each(match(name != \"PkColumn\" && name !=\"TSColumn\" && name !=\"RowVersion\"))",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RemoveMetadataColumns",
+				"RemoveMetadataColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: (concat(\"delta/silver/\",$TargetTableName,\"/\")),",
+				"     truncate:true,",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SilverDelta"
 			]
 		}
 	}
