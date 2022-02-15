@@ -38,13 +38,6 @@
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "AzureBlobStorage1",
-						"type": "LinkedServiceReference"
-					},
-					"name": "GoldProduct"
-				},
-				{
 					"name": "LastKeyCache"
 				}
 			],
@@ -60,6 +53,9 @@
 				},
 				{
 					"name": "Filter"
+				},
+				{
+					"name": "SurrogateKey1"
 				}
 			],
 			"scriptLines": [
@@ -170,22 +166,8 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select",
 				"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
-				"Select sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     format: 'delta',",
-				"     container: 'lgnsynapsefs',",
-				"     folderPath: 'gold/DimProduct',",
-				"     truncate:true,",
-				"     mergeSchema: false,",
-				"     autoCompact: false,",
-				"     optimizedWrite: false,",
-				"     vacuum: 0,",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> GoldProduct",
+				"Select keyGenerate(output(ProductKey as long),",
+				"     startAt: 1L) ~> SurrogateKey1",
 				"Filter sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
@@ -193,7 +175,7 @@
 				"     store: 'cache',",
 				"     format: 'inline',",
 				"     output: false,",
-				"     saveOrder: 1) ~> LastKeyCache"
+				"     saveOrder: 0) ~> LastKeyCache"
 			]
 		}
 	}
