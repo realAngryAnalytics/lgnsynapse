@@ -809,6 +809,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeJson')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
 				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeParquet')]"
 			]
 		},
@@ -6195,7 +6196,7 @@
 					"location": {
 						"type": "AzureBlobStorageLocation",
 						"folderPath": "raw/json",
-						"container": "data-lake"
+						"container": "lgnsynapsefs"
 					}
 				},
 				"schema": {
@@ -6560,7 +6561,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"container": "data-lake"
+						"container": "lgnsynapsefs"
 					},
 					"compressionCodec": "snappy"
 				},
@@ -7584,7 +7585,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Delta Loading"
+					"name": "Delta Loading/Bronze"
 				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
@@ -7638,7 +7639,7 @@
 						"MetadataColumns sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'delta',",
-						"     container: 'data-lake',",
+						"     container: 'lgnsynapsefs',",
 						"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
 						"     mergeSchema: false,",
 						"     autoCompact: false,",
@@ -7664,7 +7665,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "Delta Loading"
+					"name": "Delta Loading/Bronze"
 				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
@@ -7726,7 +7727,7 @@
 						"MetadataColumns sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'delta',",
-						"     container: 'data-lake',",
+						"     container: 'lgnsynapsefs',",
 						"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
 						"     mergeSchema: false,",
 						"     autoCompact: false,",
@@ -11170,7 +11171,11 @@
 								"aggData": "{\"passengerCount\":{\"2.382\":7,\"2.9365876998482907\":0,\"2.955385293728598\":1,\"3.0823106614325835\":6,\"3.1096431007047065\":5,\"3.124120509875713\":3,\"3.132080374155551\":4,\"3.1983281312300624\":2,\"6.23\":9,\"7.831666666666666\":8}}",
 								"isSummary": false,
 								"previewData": {
-									"filter": null
+									"filter": null,
+									"table": {
+										"rows": [],
+										"schema": {}
+									}
 								},
 								"isSql": false
 							}
@@ -13826,7 +13831,7 @@
 						"spark.dynamicAllocation.enabled": "true",
 						"spark.dynamicAllocation.minExecutors": "1",
 						"spark.dynamicAllocation.maxExecutors": "4",
-						"spark.autotune.trackingId": "454ecf90-963c-4ac9-85ba-4f61c6ed0702"
+						"spark.autotune.trackingId": "ce0fac3e-02f4-49f2-925e-277d46080b8c"
 					}
 				},
 				"metadata": {
@@ -13851,7 +13856,8 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": true
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -13863,6 +13869,35 @@
 						},
 						"source": [
 							"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"USE bronze;\r\n",
+							"CREATE TABLE IF NOT EXISTS Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 						],
 						"outputs": [],
 						"execution_count": 2
@@ -13878,22 +13913,14 @@
 								"transient": {
 									"deleting": false
 								}
-							}
+							},
+							"collapsed": false
 						},
 						"source": [
-							"USE bronze;\r\n",
-							"CREATE TABLE IF NOT EXISTS Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
-							"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
+							"select * from bronze.salesorderdetail"
 						],
 						"outputs": [],
-						"execution_count": null
+						"execution_count": 7
 					},
 					{
 						"cell_type": "code",
@@ -13906,32 +13933,16 @@
 								"transient": {
 									"deleting": false
 								}
-							}
-						},
-						"source": [
-							"select * from bronze.Address"
-						],
-						"outputs": [],
-						"execution_count": null
-					},
-					{
-						"cell_type": "code",
-						"metadata": {
-							"jupyter": {
-								"source_hidden": false,
-								"outputs_hidden": false
 							},
-							"nteract": {
-								"transient": {
-									"deleting": false
-								}
-							}
+							"collapsed": false
 						},
 						"source": [
-							"dbutils.fs.ls(\"/delta/\")"
+							"SELECT 'SalesOrderDetail' as TableName, count(*) as RowCnt from bronze.salesorderdetail\r\n",
+							"UNION ALL\r\n",
+							"Select 'Product' as TableName, count(*) as RowCnt from bronze.product"
 						],
 						"outputs": [],
-						"execution_count": null
+						"execution_count": 6
 					}
 				]
 			},
@@ -47139,6 +47150,247 @@
 				"annotations": []
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowBronzeToSilver')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta Loading/Silver"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "BronzeDelta"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverDelta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AddMetadataColumns"
+						},
+						{
+							"name": "RankRowVersions"
+						},
+						{
+							"name": "Deduplicate"
+						},
+						{
+							"name": "RemoveMetadataColumns"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     SourceTableName as string (\"\"),",
+						"     TargetTableName as string (\"\"),",
+						"     PrimaryKey as string (\"\"),",
+						"     TimestampColumn as string (\"\")",
+						"}",
+						"source(output(",
+						"          AddressID as integer,",
+						"          AddressLine1 as string,",
+						"          AddressLine2 as string,",
+						"          City as string,",
+						"          StateProvince as string,",
+						"          CountryRegion as string,",
+						"          PostalCode as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as string,",
+						"          CompanyName as string,",
+						"          CustomerID as string,",
+						"          EmailAddress as string,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          MiddleName as string,",
+						"          NameStyle as string,",
+						"          PasswordHash as string,",
+						"          PasswordSalt as string,",
+						"          Phone as string,",
+						"          SalesPerson as string,",
+						"          Suffix as string,",
+						"          Title as string,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta",
+						"BronzeDelta derive(PkColumn = byName($PrimaryKey),",
+						"          TSColumn = byName($TimestampColumn)) ~> AddMetadataColumns",
+						"AddMetadataColumns window(over(PkColumn),",
+						"     desc(TSColumn, true),",
+						"     RowVersion = denseRank()) ~> RankRowVersions",
+						"RankRowVersions filter(RowVersion==1) ~> Deduplicate",
+						"Deduplicate select(mapColumn(",
+						"          each(match(name != \"PkColumn\" && name !=\"TSColumn\" && name !=\"RowVersion\"))",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> RemoveMetadataColumns",
+						"RemoveMetadataColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: (concat(\"delta/silver/\",$TargetTableName,\"/\")),",
+						"     truncate:true,",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SilverDelta"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/BronzeToSilver')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_table",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('Tables')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "DFFromBronzeSilver",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowBronzeToSilver",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												},
+												"PrimaryKey": {
+													"value": "'@{item().primarykey}'",
+													"type": "Expression"
+												},
+												"TimestampColumn": {
+													"value": "'@{item().timestamp}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"BronzeDelta": {},
+												"SilverDelta": {}
+											}
+										},
+										"staging": {},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"Tables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "Address",
+								"destination": "Address",
+								"primarykey": "AddressID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "Product",
+								"destination": "Product",
+								"primarykey": "ProductID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductCategory",
+								"destination": "ProductCategory",
+								"primarykey": "ProductCategoryID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductDescription",
+								"destination": "ProductDescription",
+								"primarykey": "ProductDescriptionID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "ProductModel",
+								"destination": " ProductModel",
+								"primarykey": "ProductModelID",
+								"timestamp": "DateInserted"
+							},
+							{
+								"source": "SalesOrderHeader",
+								"destination": "SalesOrderHeader",
+								"primarykey": "SalesOrderID",
+								"timestamp": "DateInserted"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Delta/Silver"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/dataflows/DataflowBronzeToSilver')]"
+			]
 		}
 	]
 }
