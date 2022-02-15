@@ -56,7 +56,7 @@
 				"MetadataColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
-				"     container: 'data-lake',",
+				"     container: 'lgnsynapsefs',",
 				"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
 				"     mergeSchema: false,",
 				"     autoCompact: false,",
