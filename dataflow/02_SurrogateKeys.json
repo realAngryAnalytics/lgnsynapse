@@ -59,6 +59,15 @@
 				},
 				{
 					"name": "CalculateKey"
+				},
+				{
+					"name": "AddTableName"
+				},
+				{
+					"name": "CalculateMaxKey"
+				},
+				{
+					"name": "AlterRow"
 				}
 			],
 			"scriptLines": [
@@ -172,6 +181,10 @@
 				"Select keyGenerate(output(ProductKey as long),",
 				"     startAt: 1L) ~> GetSurrogateKey",
 				"GetSurrogateKey derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey) ) ~> CalculateKey",
+				"CalculateKey derive(TableName = \"DimProduct\") ~> AddTableName",
+				"AddTableName aggregate(groupBy(TableName),",
+				"     LastKey = max(ProductKey)) ~> CalculateMaxKey",
+				"CalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow",
 				"Filter sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
