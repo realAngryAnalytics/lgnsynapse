@@ -13899,7 +13899,7 @@
 						"spark.dynamicAllocation.enabled": "true",
 						"spark.dynamicAllocation.minExecutors": "1",
 						"spark.dynamicAllocation.maxExecutors": "4",
-						"spark.autotune.trackingId": "be27d053-1355-4f5e-bd2a-ed395a0c447d"
+						"spark.autotune.trackingId": "548b44cc-5799-4795-8bed-ff250470643c"
 					}
 				},
 				"metadata": {
@@ -13924,7 +13924,8 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": true
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -13935,10 +13936,10 @@
 							"collapsed": false
 						},
 						"source": [
-							"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+							"CREATE DATABASE IF NOT EXISTS bronze2 LOCATION \"/delta/bronze/\""
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 3
 					},
 					{
 						"cell_type": "code",
@@ -13967,7 +13968,7 @@
 							"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 						],
 						"outputs": [],
-						"execution_count": 2
+						"execution_count": 4
 					},
 					{
 						"cell_type": "code",
@@ -13987,7 +13988,7 @@
 							"select * from bronze.salesorderdetail"
 						],
 						"outputs": [],
-						"execution_count": 8
+						"execution_count": 5
 					},
 					{
 						"cell_type": "code",
@@ -14010,6 +14011,25 @@
 						],
 						"outputs": [],
 						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"drop DATABASE bronze"
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
@@ -47354,7 +47374,7 @@
 						"     validateSchema: false,",
 						"     format: 'delta',",
 						"     container: 'lgnsynapsefs',",
-						"     folderPath: 'gold/DimProduct',",
+						"     folderPath: 'delta/gold/dimProduct',",
 						"     truncate:true,",
 						"     mergeSchema: false,",
 						"     autoCompact: false,",
@@ -47423,6 +47443,13 @@
 								"type": "LinkedServiceReference"
 							},
 							"name": "UpdateWatermark"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldProduct"
 						}
 					],
 					"transformations": [
@@ -47592,7 +47619,23 @@
 						"     upsertable:true,",
 						"     keys:['TableName'],",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> UpdateWatermark"
+						"     skipDuplicateMapOutputs: true) ~> UpdateWatermark",
+						"CalculateKey sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/gold/dimProduct',",
+						"     truncate:true,",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> GoldProduct"
 					]
 				}
 			},
@@ -47725,7 +47768,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Product",
+						"name": "dimProduct",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -47747,7 +47790,8 @@
 									"SilverModel": {},
 									"GoldDimWatermarks": {},
 									"LastKeyCache": {},
-									"UpdateWatermark": {}
+									"UpdateWatermark": {},
+									"GoldProduct": {}
 								}
 							},
 							"staging": {},
@@ -47772,6 +47816,29 @@
 				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
 				"[concat(variables('workspaceId'), '/dataflows/02_SurrogateKeys')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dimProduct')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta/Gold"
+				},
+				"content": {
+					"query": "\n\n\nCREATE EXTERNAL DATA SOURCE [DeltaLakeStorage] \n\tWITH (\n\t\tLOCATION = 'abfss://lgnsynapsefs@lgnsynapselake.dfs.core.windows.net/delta/' \n\t)\nGO\n\nCREATE EXTERNAL TABLE dimProduct (\n\t[ProductID] int,\n\t[Name] nvarchar(4000),\n\t[ProductNumber] nvarchar(4000),\n\t[Color] nvarchar(4000),\n\t[StandardCost] numeric(19,4),\n\t[ListPrice] numeric(19,4),\n\t[DiscontinuedDate] datetime2(7),\n\t[ThumbNailPhoto] varbinary(8000),\n\t[ThumbnailPhotoFileName] nvarchar(4000),\n\t[rowguid] nvarchar(4000),\n\t[ModifiedDate] datetime2(7),\n\t[Size] nvarchar(4000),\n\t[Weight] numeric(8,2),\n\t[ProductCategoryID] int,\n\t[ProductModelID] int,\n\t[SellStartDate] datetime2(7),\n\t[SellEndDate] datetime2(7),\n\t[SourceFileName] nvarchar(4000),\n\t[DateInserted] datetime2(7),\n\t[ParentProductCategoryID] int,\n\t[ProductCategory] nvarchar(4000),\n\t[ProductModel] nvarchar(4000),\n\t[CatalogDescription] nvarchar(4000),\n\t[ProductKey] bigint\n\t)\n\tWITH (\n\tLOCATION = 'gold/dimProduct/',\n\tDATA_SOURCE = [DeltaLakeStorage] ,\n\tFILE_FORMAT = [DeltaLakeFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM dbo.dimProduct\nGO\n\nDROP EXTERNAL DATA SOURCE [DeltaLakeStorage] \nDROP EXTERNAL TABLE dimProduct",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
 		}
 	]
 }
