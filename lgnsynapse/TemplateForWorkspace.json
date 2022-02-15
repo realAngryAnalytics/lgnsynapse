@@ -73,24 +73,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/lgnsynspark')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/lgnsynspark1')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_Landing_Json')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -653,6 +635,181 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/SourceDataset_6zv')]",
 				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_6zv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyRawToDelta')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_Json_List",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('JsonTables')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "DFFromJsonDelta",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowLandingBronzeJson",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"JsonRaw": {},
+												"Delta": {}
+											}
+										},
+										"staging": {},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ForEach_Parquet_List",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('ParquetTables')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "DFFromParquetDelta",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DataflowLandingBronzeParquet",
+											"type": "DataFlowReference",
+											"parameters": {
+												"SourceTableName": {
+													"value": "'@{item().source}'",
+													"type": "Expression"
+												},
+												"TargetTableName": {
+													"value": "'@{item().destination}'",
+													"type": "Expression"
+												}
+											},
+											"datasetParameters": {
+												"ParquetRaw": {},
+												"Delta": {}
+											}
+										},
+										"staging": {},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"JsonTables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "SalesLTCustomer",
+								"destination": "Customer"
+							},
+							{
+								"source": "SalesLTAddress",
+								"destination": "Address"
+							},
+							{
+								"source": "SalesLTCustomerAddress",
+								"destination": "CustomerAddress"
+							}
+						]
+					},
+					"ParquetTables": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": "SalesLTProduct",
+								"destination": "Product"
+							},
+							{
+								"source": "SalesLTProductCategory",
+								"destination": "ProductCategory"
+							},
+							{
+								"source": "SalesLTProductDescription",
+								"destination": "ProductDescription"
+							},
+							{
+								"source": "SalesLTProductModel",
+								"destination": "ProductModel"
+							},
+							{
+								"source": "SalesLTSalesOrderDetail",
+								"destination": "SalesOrderDetail"
+							},
+							{
+								"source": "SalesLTSalesOrderHeader",
+								"destination": "SalesOrderHeader"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Delta/Bronze"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeJson')]",
+				"[concat(variables('workspaceId'), '/dataflows/DataflowLandingBronzeParquet')]"
 			]
 		},
 		{
@@ -5851,7 +6008,7 @@
 							"type": "Expression"
 						},
 						"folderPath": "raw/parquet",
-						"container": "data-lake"
+						"container": "lgnsynapsefs"
 					},
 					"compressionCodec": "snappy"
 				},
@@ -5885,7 +6042,7 @@
 							"type": "Expression"
 						},
 						"folderPath": "raw/json",
-						"container": "data-lake"
+						"container": "lgnsynapsefs"
 					}
 				},
 				"schema": {}
@@ -6021,6 +6178,61 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/SqlOnDemandDemo')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonDS2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "raw/json",
+						"container": "data-lake"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"AddressID": {
+							"type": "integer"
+						},
+						"AddressLine1": {
+							"type": "string"
+						},
+						"AddressLine2": {
+							"type": "null"
+						},
+						"City": {
+							"type": "string"
+						},
+						"StateProvince": {
+							"type": "string"
+						},
+						"CountryRegion": {
+							"type": "string"
+						},
+						"PostalCode": {
+							"type": "string"
+						},
+						"rowguid": {
+							"type": "string"
+						},
+						"ModifiedDate": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
@@ -6332,6 +6544,131 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/SL3SQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ParquetDS')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "data-lake"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "vendorID",
+						"type": "INT32"
+					},
+					{
+						"name": "lpepPickupDatetime",
+						"type": "INT96"
+					},
+					{
+						"name": "lpepDropoffDatetime",
+						"type": "INT96"
+					},
+					{
+						"name": "passengerCount",
+						"type": "INT32"
+					},
+					{
+						"name": "tripDistance",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "puLocationId",
+						"type": "UTF8"
+					},
+					{
+						"name": "doLocationId",
+						"type": "UTF8"
+					},
+					{
+						"name": "pickupLongitude",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "pickupLatitude",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "dropoffLongitude",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "dropoffLatitude",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "rateCodeID",
+						"type": "INT32"
+					},
+					{
+						"name": "storeAndFwdFlag",
+						"type": "UTF8"
+					},
+					{
+						"name": "paymentType",
+						"type": "INT32"
+					},
+					{
+						"name": "fareAmount",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "extra",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "mtaTax",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "improvementSurcharge",
+						"type": "UTF8"
+					},
+					{
+						"name": "tipAmount",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "tollsAmount",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "ehailFee",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "totalAmount",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "tripType",
+						"type": "INT32"
+					},
+					{
+						"name": "puYear",
+						"type": "UTF8"
+					},
+					{
+						"name": "puMonth",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
@@ -7240,6 +7577,174 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowLandingBronzeJson')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta Loading"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "JsonDS2",
+								"type": "DatasetReference"
+							},
+							"name": "JsonRaw"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Delta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "MetadataColumns"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     SourceTableName as string (\"\"),",
+						"     TargetTableName as string (\"\")",
+						"}",
+						"source(output(",
+						"          AddressID as integer,",
+						"          AddressLine1 as string,",
+						"          AddressLine2 as string,",
+						"          City as string,",
+						"          StateProvince as string,",
+						"          CountryRegion as string,",
+						"          PostalCode as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     purgeFiles: true,",
+						"     rowUrlColumn: 'SourceFileName',",
+						"     documentForm: 'documentPerLine',",
+						"     wildcardPaths:[(concat(\"raw/json/\",$SourceTableName,\".json\"))]) ~> JsonRaw",
+						"JsonRaw derive(DateInserted = currentTimestamp()) ~> MetadataColumns",
+						"MetadataColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'data-lake',",
+						"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Delta"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/JsonDS2')]",
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataflowLandingBronzeParquet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta Loading"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ParquetDS",
+								"type": "DatasetReference"
+							},
+							"name": "ParquetRaw"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Delta"
+						}
+					],
+					"transformations": [
+						{
+							"name": "MetadataColumns"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     SourceTableName as string (\"\"),",
+						"     TargetTableName as string (\"\")",
+						"}",
+						"source(output(",
+						"          ProductID as integer,",
+						"          Name as string,",
+						"          ProductNumber as string,",
+						"          Color as string,",
+						"          StandardCost as decimal(19,4),",
+						"          ListPrice as decimal(19,4),",
+						"          DiscontinuedDate as timestamp,",
+						"          ThumbNailPhoto as binary,",
+						"          ThumbnailPhotoFileName as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          Size as string,",
+						"          Weight as decimal(8,2),",
+						"          ProductCategoryID as integer,",
+						"          ProductModelID as integer,",
+						"          SellStartDate as timestamp,",
+						"          SellEndDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     purgeFiles: true,",
+						"     rowUrlColumn: 'SourceFileName',",
+						"     format: 'parquet',",
+						"     wildcardPaths:[(concat(\"raw/parquet/\",$SourceTableName,\".parquet\"))]) ~> ParquetRaw",
+						"ParquetRaw derive(DateInserted = currentTimestamp()) ~> MetadataColumns",
+						"MetadataColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'data-lake',",
+						"     folderPath: (concat(\"delta/bronze/\",$TargetTableName,\"/\")),",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Delta"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/ParquetDS')]",
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/SQLFullLoadToDelta')]",
@@ -13292,6 +13797,141 @@
 						],
 						"outputs": [],
 						"execution_count": 1
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/RegisterDeltaLakeTables')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "lgnsynspark1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 1,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "true",
+						"spark.dynamicAllocation.minExecutors": "1",
+						"spark.dynamicAllocation.maxExecutors": "4",
+						"spark.autotune.trackingId": "454ecf90-963c-4ac9-85ba-4f61c6ed0702"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "sql"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/65c04546-fce4-4b3c-be44-dac0e5324e24/resourceGroups/lgnsynapse/providers/Microsoft.Synapse/workspaces/lgnsynapse/bigDataPools/lgnsynspark1",
+						"name": "lgnsynspark1",
+						"type": "Spark",
+						"endpoint": "https://lgnsynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/lgnsynspark1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"USE bronze;\r\n",
+							"CREATE TABLE IF NOT EXISTS Address USING DELTA LOCATION \"/delta/bronze/Address/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS Customer USING DELTA LOCATION \"/delta/bronze/Customer/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS CustomerAddress USING DELTA LOCATION \"/delta/bronze/CustomerAddress/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS Product USING DELTA LOCATION \"/delta/bronze/Product/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductCategory USING DELTA LOCATION \"/delta/bronze/ProductCategory/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductDescription USING DELTA LOCATION \"/delta/bronze/ProductDescription/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS ProductModel USING DELTA LOCATION \"/delta/bronze/ProductModel/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
+							"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"select * from bronze.Address"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"dbutils.fs.ls(\"/delta/\")"
+						],
+						"outputs": [],
+						"execution_count": null
 					}
 				]
 			},
@@ -46481,6 +47121,24 @@
 			},
 			"dependsOn": [],
 			"location": "northcentralus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lgnsynspark')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lgnsynspark1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }
