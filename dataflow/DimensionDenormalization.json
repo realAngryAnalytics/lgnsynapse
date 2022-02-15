@@ -29,7 +29,15 @@
 					"name": "SilverModel"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "GoldProduct"
+				}
+			],
 			"transformations": [
 				{
 					"name": "LookupCategory"
@@ -38,7 +46,7 @@
 					"name": "JoinModel"
 				},
 				{
-					"name": "Select1"
+					"name": "Select"
 				}
 			],
 			"scriptLines": [
@@ -128,13 +136,8 @@
 				"          DateInserted = SilverProduct@DateInserted,",
 				"          ProductCategoryID = SilverCategory@ProductCategoryID,",
 				"          ParentProductCategoryID,",
-				"          Name = SilverCategory@Name,",
-				"          rowguid = SilverCategory@rowguid,",
-				"          ModifiedDate = SilverCategory@ModifiedDate,",
-				"          SourceFileName = SilverCategory@SourceFileName,",
-				"          DateInserted = SilverCategory@DateInserted,",
-				"          ProductModelID = SilverModel@ProductModelID,",
-				"          Name = SilverModel@Name,",
+				"          ProductCategory = SilverCategory@Name,",
+				"          ProductModel = SilverModel@Name,",
 				"          CatalogDescription,",
 				"          rowguid = SilverModel@rowguid,",
 				"          ModifiedDate = SilverModel@ModifiedDate,",
@@ -142,7 +145,23 @@
 				"          DateInserted = SilverModel@DateInserted",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> Select1"
+				"     skipDuplicateMapOutputs: true) ~> Select",
+				"Select sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'gold/DimProduct',",
+				"     truncate:true,",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> GoldProduct"
 			]
 		}
 	}
