@@ -27,6 +27,13 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "SilverModel"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "GoldDimWatermarks"
 				}
 			],
 			"sinks": [
@@ -107,6 +114,16 @@
 				"     format: 'delta',",
 				"     container: 'lgnsynapsefs',",
 				"     folderPath: 'delta/silver/ ProductModel') ~> SilverModel",
+				"source(output(",
+				"          TableName as string,",
+				"          LastKey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks",
 				"SilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
