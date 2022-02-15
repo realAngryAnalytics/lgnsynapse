@@ -1,5 +1,5 @@
 {
-	"name": "DimensionDenormalization",
+	"name": "01_DimensionDenormalization",
 	"properties": {
 		"folder": {
 			"name": "Delta Loading/Gold"
