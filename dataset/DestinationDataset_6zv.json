@@ -20,7 +20,7 @@
 					"type": "Expression"
 				},
 				"folderPath": "raw/parquet",
-				"container": "data-lake"
+				"container": "lgnsynapsefs"
 			},
 			"compressionCodec": "snappy"
 		},
