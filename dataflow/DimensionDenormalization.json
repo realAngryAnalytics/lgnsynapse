@@ -36,6 +36,9 @@
 				},
 				{
 					"name": "JoinModel"
+				},
+				{
+					"name": "Select1"
 				}
 			],
 			"scriptLines": [
@@ -102,7 +105,44 @@
 				"     broadcast: 'auto')~> LookupCategory",
 				"LookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,",
 				"     joinType:'inner',",
-				"     broadcast: 'auto')~> JoinModel"
+				"     broadcast: 'auto')~> JoinModel",
+				"JoinModel select(mapColumn(",
+				"          ProductID,",
+				"          Name = SilverProduct@Name,",
+				"          ProductNumber,",
+				"          Color,",
+				"          StandardCost,",
+				"          ListPrice,",
+				"          DiscontinuedDate,",
+				"          ThumbNailPhoto,",
+				"          ThumbnailPhotoFileName,",
+				"          rowguid = SilverProduct@rowguid,",
+				"          ModifiedDate = SilverProduct@ModifiedDate,",
+				"          Size,",
+				"          Weight,",
+				"          ProductCategoryID = SilverProduct@ProductCategoryID,",
+				"          ProductModelID = SilverProduct@ProductModelID,",
+				"          SellStartDate,",
+				"          SellEndDate,",
+				"          SourceFileName = SilverProduct@SourceFileName,",
+				"          DateInserted = SilverProduct@DateInserted,",
+				"          ProductCategoryID = SilverCategory@ProductCategoryID,",
+				"          ParentProductCategoryID,",
+				"          Name = SilverCategory@Name,",
+				"          rowguid = SilverCategory@rowguid,",
+				"          ModifiedDate = SilverCategory@ModifiedDate,",
+				"          SourceFileName = SilverCategory@SourceFileName,",
+				"          DateInserted = SilverCategory@DateInserted,",
+				"          ProductModelID = SilverModel@ProductModelID,",
+				"          Name = SilverModel@Name,",
+				"          CatalogDescription,",
+				"          rowguid = SilverModel@rowguid,",
+				"          ModifiedDate = SilverModel@ModifiedDate,",
+				"          SourceFileName = SilverModel@SourceFileName,",
+				"          DateInserted = SilverModel@DateInserted",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select1"
 			]
 		}
 	}
