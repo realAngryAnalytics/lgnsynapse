@@ -43,6 +43,9 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "GoldProduct"
+				},
+				{
+					"name": "LastKeyCache"
 				}
 			],
 			"transformations": [
@@ -54,6 +57,9 @@
 				},
 				{
 					"name": "Select"
+				},
+				{
+					"name": "Filter"
 				}
 			],
 			"scriptLines": [
@@ -163,6 +169,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> Select",
+				"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
 				"Select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
@@ -178,7 +185,15 @@
 				"     updateable:false,",
 				"     upsertable:false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> GoldProduct"
+				"     skipDuplicateMapOutputs: true) ~> GoldProduct",
+				"Filter sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: false,",
+				"     saveOrder: 1) ~> LastKeyCache"
 			]
 		}
 	}
