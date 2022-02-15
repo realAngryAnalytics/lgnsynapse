@@ -150,7 +150,7 @@
 				"     validateSchema: false,",
 				"     format: 'delta',",
 				"     container: 'lgnsynapsefs',",
-				"     folderPath: 'gold/DimProduct',",
+				"     folderPath: 'delta/gold/DimProduct',",
 				"     truncate:true,",
 				"     mergeSchema: false,",
 				"     autoCompact: false,",
