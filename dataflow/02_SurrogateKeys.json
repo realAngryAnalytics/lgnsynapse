@@ -46,6 +46,13 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "UpdateWatermark"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "GoldProduct"
 				}
 			],
 			"transformations": [
@@ -187,7 +194,7 @@
 				"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
 				"Select keyGenerate(output(ProductKey as long),",
 				"     startAt: 1L) ~> GetSurrogateKey",
-				"GetSurrogateKey derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey) ) ~> CalculateKey",
+				"GetSurrogateKey derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey",
 				"CalculateKey derive(TableName = \"DimProduct\") ~> AddTableName",
 				"AddTableName aggregate(groupBy(TableName),",
 				"     LastKey = max(ProductKey)) ~> CalculateMaxKey",
@@ -215,7 +222,23 @@
 				"     upsertable:true,",
 				"     keys:['TableName'],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> UpdateWatermark"
+				"     skipDuplicateMapOutputs: true) ~> UpdateWatermark",
+				"CalculateKey sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: 'delta/gold/dimProduct',",
+				"     truncate:true,",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> GoldProduct"
 			]
 		}
 	}
