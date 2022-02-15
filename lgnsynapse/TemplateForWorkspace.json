@@ -1428,7 +1428,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskJan2021_qrw_20220107"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskJan2021_qrw_20220107"
 				},
 				"annotations": []
 			},
@@ -1548,7 +1548,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskJan2021_qrw_20220107"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskJan2021_qrw_20220107"
 				},
 				"annotations": []
 			},
@@ -1680,7 +1680,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskJan2021_qrw_20220107"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskJan2021_qrw_20220107"
 				},
 				"annotations": [
 					"MetadataDrivenSolution"
@@ -2108,7 +2108,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskOracle_71l_20211129"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskOracle_71l_20211129"
 				},
 				"annotations": []
 			},
@@ -2228,7 +2228,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskOracle_71l_20211129"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskOracle_71l_20211129"
 				},
 				"annotations": []
 			},
@@ -2360,7 +2360,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTaskOracle_71l_20211129"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTaskOracle_71l_20211129"
 				},
 				"annotations": [
 					"MetadataDrivenSolution"
@@ -2862,7 +2862,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTask_y4w_20211006"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTask_y4w_20211006"
 				},
 				"annotations": []
 			},
@@ -2982,7 +2982,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTask_y4w_20211006"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTask_y4w_20211006"
 				},
 				"annotations": []
 			},
@@ -3114,7 +3114,7 @@
 					}
 				},
 				"folder": {
-					"name": "MetadataDrivenCopyTask_y4w_20211006"
+					"name": "BuiltInMetadata/MetadataDrivenCopyTask_y4w_20211006"
 				},
 				"annotations": [
 					"MetadataDrivenSolution"
@@ -3172,7 +3172,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/SQLFullLoadToDelta')]"
+				"[concat(variables('workspaceId'), '/dataflows/SQLFullLoadToDelta')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -47198,6 +47199,579 @@
 			},
 			"dependsOn": [],
 			"location": "northcentralus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/01_DimensionDenormalization')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta Loading/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldProduct"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "Select"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ProductID as integer,",
+						"          Name as string,",
+						"          ProductNumber as string,",
+						"          Color as string,",
+						"          StandardCost as decimal(19,4),",
+						"          ListPrice as decimal(19,4),",
+						"          DiscontinuedDate as timestamp,",
+						"          ThumbNailPhoto as binary,",
+						"          ThumbnailPhotoFileName as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          Size as string,",
+						"          Weight as decimal(8,2),",
+						"          ProductCategoryID as integer,",
+						"          ProductModelID as integer,",
+						"          SellStartDate as timestamp,",
+						"          SellEndDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/Product') ~> SilverProduct",
+						"source(output(",
+						"          ProductCategoryID as integer,",
+						"          ParentProductCategoryID as integer,",
+						"          Name as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/ProductCategory') ~> SilverCategory",
+						"source(output(",
+						"          ProductModelID as integer,",
+						"          Name as string,",
+						"          CatalogDescription as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/ ProductModel') ~> SilverModel",
+						"SilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> LookupCategory",
+						"LookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,",
+						"     joinType:'inner',",
+						"     broadcast: 'auto')~> JoinModel",
+						"JoinModel select(mapColumn(",
+						"          ProductID,",
+						"          Name = SilverProduct@Name,",
+						"          ProductNumber,",
+						"          Color,",
+						"          StandardCost,",
+						"          ListPrice,",
+						"          DiscontinuedDate,",
+						"          ThumbNailPhoto,",
+						"          ThumbnailPhotoFileName,",
+						"          rowguid = SilverProduct@rowguid,",
+						"          ModifiedDate = SilverProduct@ModifiedDate,",
+						"          Size,",
+						"          Weight,",
+						"          ProductCategoryID = SilverProduct@ProductCategoryID,",
+						"          ProductModelID = SilverProduct@ProductModelID,",
+						"          SellStartDate,",
+						"          SellEndDate,",
+						"          SourceFileName = SilverProduct@SourceFileName,",
+						"          DateInserted = SilverProduct@DateInserted,",
+						"          ProductCategoryID = SilverCategory@ProductCategoryID,",
+						"          ParentProductCategoryID,",
+						"          ProductCategory = SilverCategory@Name,",
+						"          ProductModel = SilverModel@Name,",
+						"          CatalogDescription,",
+						"          rowguid = SilverModel@rowguid,",
+						"          ModifiedDate = SilverModel@ModifiedDate,",
+						"          SourceFileName = SilverModel@SourceFileName,",
+						"          DateInserted = SilverModel@DateInserted",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Select",
+						"Select sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'gold/DimProduct',",
+						"     truncate:true,",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> GoldProduct"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/02_SurrogateKeys')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta Loading/Gold"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverProduct"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverCategory"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SilverModel"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "GoldDimWatermarks"
+						}
+					],
+					"sinks": [
+						{
+							"name": "LastKeyCache"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureBlobStorage1",
+								"type": "LinkedServiceReference"
+							},
+							"name": "UpdateWatermark"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LookupCategory"
+						},
+						{
+							"name": "JoinModel"
+						},
+						{
+							"name": "Select"
+						},
+						{
+							"name": "Filter"
+						},
+						{
+							"name": "GetSurrogateKey"
+						},
+						{
+							"name": "CalculateKey"
+						},
+						{
+							"name": "AddTableName"
+						},
+						{
+							"name": "CalculateMaxKey"
+						},
+						{
+							"name": "AlterRow"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ProductID as integer,",
+						"          Name as string,",
+						"          ProductNumber as string,",
+						"          Color as string,",
+						"          StandardCost as decimal(19,4),",
+						"          ListPrice as decimal(19,4),",
+						"          DiscontinuedDate as timestamp,",
+						"          ThumbNailPhoto as binary,",
+						"          ThumbnailPhotoFileName as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          Size as string,",
+						"          Weight as decimal(8,2),",
+						"          ProductCategoryID as integer,",
+						"          ProductModelID as integer,",
+						"          SellStartDate as timestamp,",
+						"          SellEndDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/Product') ~> SilverProduct",
+						"source(output(",
+						"          ProductCategoryID as integer,",
+						"          ParentProductCategoryID as integer,",
+						"          Name as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/ProductCategory') ~> SilverCategory",
+						"source(output(",
+						"          ProductModelID as integer,",
+						"          Name as string,",
+						"          CatalogDescription as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          SourceFileName as string,",
+						"          DateInserted as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/silver/ ProductModel') ~> SilverModel",
+						"source(output(",
+						"          TableName as string,",
+						"          LastKey as long",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/gold/dimWatermarks') ~> GoldDimWatermarks",
+						"SilverProduct, SilverCategory lookup(SilverProduct@ProductCategoryID == SilverCategory@ProductCategoryID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> LookupCategory",
+						"LookupCategory, SilverModel join(SilverProduct@ProductModelID == SilverModel@ProductModelID,",
+						"     joinType:'inner',",
+						"     broadcast: 'auto')~> JoinModel",
+						"JoinModel select(mapColumn(",
+						"          ProductID,",
+						"          Name = SilverProduct@Name,",
+						"          ProductNumber,",
+						"          Color,",
+						"          StandardCost,",
+						"          ListPrice,",
+						"          DiscontinuedDate,",
+						"          ThumbNailPhoto,",
+						"          ThumbnailPhotoFileName,",
+						"          rowguid = SilverProduct@rowguid,",
+						"          ModifiedDate = SilverProduct@ModifiedDate,",
+						"          Size,",
+						"          Weight,",
+						"          ProductCategoryID = SilverProduct@ProductCategoryID,",
+						"          ProductModelID = SilverProduct@ProductModelID,",
+						"          SellStartDate,",
+						"          SellEndDate,",
+						"          SourceFileName = SilverProduct@SourceFileName,",
+						"          DateInserted = SilverProduct@DateInserted,",
+						"          ProductCategoryID = SilverCategory@ProductCategoryID,",
+						"          ParentProductCategoryID,",
+						"          ProductCategory = SilverCategory@Name,",
+						"          ProductModel = SilverModel@Name,",
+						"          CatalogDescription,",
+						"          rowguid = SilverModel@rowguid,",
+						"          ModifiedDate = SilverModel@ModifiedDate,",
+						"          SourceFileName = SilverModel@SourceFileName,",
+						"          DateInserted = SilverModel@DateInserted",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Select",
+						"GoldDimWatermarks filter(TableName == \"DimProduct\") ~> Filter",
+						"Select keyGenerate(output(ProductKey as long),",
+						"     startAt: 1L) ~> GetSurrogateKey",
+						"GetSurrogateKey derive(ProductKey = ProductKey+ toInteger(LastKeyCache#outputs()[1].LastKey)) ~> CalculateKey",
+						"CalculateKey derive(TableName = \"DimProduct\") ~> AddTableName",
+						"AddTableName aggregate(groupBy(TableName),",
+						"     LastKey = max(ProductKey)) ~> CalculateMaxKey",
+						"CalculateMaxKey alterRow(updateIf(TableName==\"DimProduct\")) ~> AlterRow",
+						"Filter sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     store: 'cache',",
+						"     format: 'inline',",
+						"     output: false,",
+						"     saveOrder: 0) ~> LastKeyCache",
+						"AlterRow sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'lgnsynapsefs',",
+						"     folderPath: 'delta/gold/dimWatermarks',",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
+						"     upsertable:true,",
+						"     keys:['TableName'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> UpdateWatermark"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dimWatermarks')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Delta"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "lgnsynspark1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 1,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "true",
+						"spark.dynamicAllocation.minExecutors": "1",
+						"spark.dynamicAllocation.maxExecutors": "4",
+						"spark.autotune.trackingId": "4de4b88b-5fc8-4412-919a-90445d169e9b"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "sql"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/65c04546-fce4-4b3c-be44-dac0e5324e24/resourceGroups/lgnsynapse/providers/Microsoft.Synapse/workspaces/lgnsynapse/bigDataPools/lgnsynspark1",
+						"name": "lgnsynspark1",
+						"type": "Spark",
+						"endpoint": "https://lgnsynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/lgnsynspark1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": true
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"CREATE TABLE IF NOT EXISTS dimWatermarks\r\n",
+							"(\r\n",
+							"    TableName string,\r\n",
+							"    LastKey bigint\r\n",
+							")\r\n",
+							"USING DELTA\r\n",
+							"LOCATION \"/delta/gold/dimWatermarks\";\r\n",
+							"\r\n",
+							"\r\n",
+							"Insert into dimWatermarks VALUES (\"DimProduct\",0);\r\n",
+							"Insert into dimWatermarks VALUES (\"DimCustomer\",0);\r\n",
+							"Insert into dimWatermarks VALUES (\"DimAddress\",0); \r\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"SELECT * from dimwatermarks"
+						],
+						"outputs": [],
+						"execution_count": 5
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lgnsynspark')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/lgnsynspark1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SilverToGold')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Product",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "02_SurrogateKeys",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SilverProduct": {},
+									"SilverCategory": {},
+									"SilverModel": {},
+									"GoldDimWatermarks": {},
+									"LastKeyCache": {},
+									"UpdateWatermark": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "Delta/Gold"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/dataflows/02_SurrogateKeys')]"
+			]
 		}
 	]
 }
