@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "true",
 				"spark.dynamicAllocation.minExecutors": "1",
 				"spark.dynamicAllocation.maxExecutors": "4",
-				"spark.autotune.trackingId": "be27d053-1355-4f5e-bd2a-ed395a0c447d"
+				"spark.autotune.trackingId": "d85f14c9-ca24-41de-938e-b9056711a473"
 			}
 		},
 		"metadata": {
@@ -57,9 +57,9 @@
 					"collapsed": false
 				},
 				"source": [
-					"CREATE DATABASE IF NOT EXISTS bronze LOCATION \"/delta/bronze/\""
+					"CREATE DATABASE IF NOT EXISTS bronze2 LOCATION \"/delta/bronze/\""
 				],
-				"execution_count": 1
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -87,7 +87,7 @@
 					"CREATE TABLE IF NOT EXISTS SalesOrderDetail USING DELTA LOCATION \"/delta/bronze/SalesOrderDetail/\";\r\n",
 					"CREATE TABLE IF NOT EXISTS SalesOrderHeader USING DELTA LOCATION \"/delta/bronze/SalesOrderHeader/\";"
 				],
-				"execution_count": 2
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -106,7 +106,7 @@
 				"source": [
 					"select * from bronze.salesorderdetail"
 				],
-				"execution_count": 8
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -128,6 +128,24 @@
 					"Select 'Product' as TableName, count(*) as RowCnt from bronze.product"
 				],
 				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"drop DATABASE bronze"
+				],
+				"execution_count": null
 			}
 		]
 	}
