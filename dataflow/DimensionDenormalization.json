@@ -1,5 +1,5 @@
 {
-	"name": "Dataflow1",
+	"name": "DimensionDenormalization",
 	"properties": {
 		"folder": {
 			"name": "Delta Loading/Gold"
