@@ -1,0 +1,42 @@
+{
+	"name": "DataflowBronzeToSilver",
+	"properties": {
+		"folder": {
+			"name": "Delta Loading/Silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "BronzeDelta"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "AddMetadataColumns"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     SourceTableName as string (\"\"),",
+				"     TargetTableName as string (\"\"),",
+				"     PrimaryKey as string (\"\"),",
+				"     TimestampColumn as string (\"\")",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     container: 'lgnsynapsefs',",
+				"     folderPath: (concat(\"delta/bronze/\",$SourceTableName,\"/\"))) ~> BronzeDelta",
+				"BronzeDelta derive(PkColumn = byName($PrimaryKey),",
+				"          TSColumn = byName($TimestampColumn)) ~> AddMetadataColumns"
+			]
+		}
+	}
+}
