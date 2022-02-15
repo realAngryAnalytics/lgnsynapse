@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"container": "data-lake"
+				"container": "lgnsynapsefs"
 			},
 			"compressionCodec": "snappy"
 		},
